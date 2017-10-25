@@ -1,0 +1,13 @@
+FROM mariadb:10.3
+
+ENV SCRIPTS_FOLDER=/usr/local/bin \
+    PRE_INIT_SCRIPT=pre_init.sh \
+    DATA_FOLDER=/var/lib/mysql
+
+RUN mkdir -p ${SCRIPTS_FOLDER}
+
+COPY scripts/${PRE_INIT_SCRIPT} ${SCRIPTS_FOLDER}
+RUN chmod +x ${SCRIPTS_FOLDER}/${PRE_INIT_SCRIPT} && \
+    sed -i "0,/exec/s//${PRE_INIT_SCRIPT} \n\texec/" /usr/local/bin/docker-entrypoint.sh
+
+CMD [ "--character-set-server=utf8", "--collation-server=utf8_general_ci" ]
