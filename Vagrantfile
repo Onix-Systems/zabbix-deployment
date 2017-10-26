@@ -29,7 +29,8 @@ Vagrant.configure("2") do |config|
       apt-get install -y \
           docker-ce \
           iotop \
-          htop
+          htop \
+          mc
       #
       echo "Getting docker-compose from official repository..."
       if [ ! -e "/usr/local/bin/docker-compose" ]; then

@@ -92,3 +92,20 @@ services:
       options:
         max-size: "10M"
         max-file: "5"
+
+  configurator:
+    hostname: configuration
+    build:
+      dockerfile: Dockerfile.configurator
+      context: ./
+    command: /configurator.py
+    # command: bash
+    # tty: true
+    volumes:
+      - ./scripts/configurator.py:/configurator.py
+    links:
+      - frontend
+    environment:
+      - ZBX_SERVER_URL=http://frontend
+      - ZBX_ADMIN_PASSWORD=${ZBX_ADMIN_PASSWORD:-zabbix}
+      - ZBX_DISABLE_GUEST=${ZBX_DISABLE_GUEST:-true}
