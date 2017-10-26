@@ -2,8 +2,13 @@
 Repository contain docker-compose project for running zabbix server on your own server
 Also there is Dockerfile that contains zabbix agent
 
-Zabbix server 3.4
-MariaDB 10.3
+1. Zabbix server 3.4
+1. Zabbix frontend
+1. Zabbix agent
+1. MariaDB 10.3
+1. Exim4 SMTP service
+
+PS: Are used official docker images: https://hub.docker.com/u/zabbix/
 
 ###
 Requirements
