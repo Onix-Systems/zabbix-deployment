@@ -1,2 +1,4 @@
-data/
+.vagrant/
+data
 .env
+*.log

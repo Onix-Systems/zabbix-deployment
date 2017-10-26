@@ -1,4 +1,6 @@
+.vagrant/
+data/
 docker-compose.yml
 Dockerfile*
-data/
 .env*
+*.log
