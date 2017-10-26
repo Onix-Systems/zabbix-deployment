@@ -1,2 +1,2 @@
-server/data
-server/.env
+data/
+.env

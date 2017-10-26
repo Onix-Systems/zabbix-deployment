@@ -1,7 +1,7 @@
 FROM mariadb:10.3
 
 ENV SCRIPTS_FOLDER=/usr/local/bin \
-    PRE_INIT_SCRIPT=pre_init.sh \
+    PRE_INIT_SCRIPT=db_pre_init.sh \
     DATA_FOLDER=/var/lib/mysql
 
 RUN mkdir -p ${SCRIPTS_FOLDER}

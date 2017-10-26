@@ -14,7 +14,6 @@ Requirements
 ### Run Zabbix server
 
 ```shell
-$ cd server
 $ docker-compose up -d
 ```
 
@@ -22,6 +21,6 @@ Frontend url is: http://localhost if you launch project on your local machine.
 
 Default user for zabbix is: admin / zabbix
 
-To run project with specific options, please see `server/.env.example` file.
-To apply non default option, copy `server/.env.example` file to `server/.env` and
+To run project with specific options, please see `.env.example` file.
+To apply non default option, copy `.env.example` file to `.env` and
 edit necessary values there.
