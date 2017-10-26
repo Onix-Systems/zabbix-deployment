@@ -62,7 +62,7 @@ class Configurator:
             logger.info("Skip updating the admin password.")
             return 0
 
-    def add_user_to_group(self,username,group_name):
+    def add_user_to_group(self, username, group_name):
         uid=self.zapi.user.get(filter={"alias": username})[0]["userid"]
         logger.debug("Check user is already in group %s"%(group_name))
         try:
