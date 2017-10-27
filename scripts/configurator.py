@@ -4,7 +4,7 @@
 # This script is used for configuring Zabbix server by using API
 #
 
-import os, logging, argparse, socket
+import argparse, logging, os, socket, time
 from pyzabbix import ZabbixAPI
 
 parser = argparse.ArgumentParser(prog="./configurator.py", description="Zabbix configurator")
@@ -29,20 +29,34 @@ class Configurator:
         self.agent_dns_name = os.environ["ZBX_AGENT_HOSTNAME"]
         self.agent_ip_address = socket.gethostbyname(self.agent_dns_name)
         self.default_agent_port = 10050
-
+        # If server is unreachable than try to reconnect self.attempts_max_count times after wait timeout
+        self.login_attempt_wait_timeout = 5
+        self.login_attempts_max_count = 10
+        #
         self.zapi = ZabbixAPI(self.url)
 
     def login(self):
         logger.debug('Login into Zabbix server (%s)'%(self.url))
-        try:
-            self.zapi.login(self.default_admin_username, self.default_admin_password)
-        except:
+        login_error = False
+        for attempt in range(0,self.login_attempts_max_count):
+            if login_error:
+                logger.info("Login attemtp %d/%d with %d sec inteval"%(attempt+1, self.login_attempts_max_count, self.login_attempt_wait_timeout))
+                time.sleep(self.login_attempt_wait_timeout)
             try:
-                self.zapi.login(self.default_admin_username, self.admin_password)
-                self.default_admin_password=self.admin_password
+                self.zapi.login(self.default_admin_username, self.default_admin_password)
+                login_error = False
+                break
             except:
-                logger.critical("Can not login into Zabbix server.")
-                exit(1)
+                try:
+                    self.zapi.login(self.default_admin_username, self.admin_password)
+                    self.default_admin_password=self.admin_password
+                    login_error = False
+                    break
+                except:
+                    login_error = True
+        if login_error:
+            logger.critical("Can not login into Zabbix server after %d attemtps."%(attempt))
+            exit(1)
         self.uid = self.zapi.user.get(filter={"alias": self.default_admin_username})[0]["userid"]
 
     def logout(self):

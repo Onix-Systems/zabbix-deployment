@@ -40,7 +40,7 @@ $ vagrant up
 ```
 
 After succesfully completed provision scenario it is possible to get access to
-Zabbix UI by url: http://192.168.33.102 - internal IP address of VM.
+Zabbix UI by url: http://localhost:8080.
 
 Repeat provision scenario
 ```
