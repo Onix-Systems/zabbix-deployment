@@ -6,9 +6,14 @@ services:
     image: zabbix/zabbix-server-mysql:ubuntu-${ZBX_VERSION:-3.4}-latest
     ports:
       - "${ZBX_EXTERNAL_SERVER_PORT:-10051}:10051"
+    networks:
+      zabbix_net:
+        ipv4_address: ${SUBNET_PREFIX:-172.15.0.}2
     links:
       - db
       - smtp
+    extra_hosts:
+      - "agent:${SUBNET_PREFIX:-172.15.0.}1"
     environment:
       - DB_SERVER_HOST=db
       - MYSQL_DATABASE=${MYSQL_DATABASE:-zabbix}
@@ -26,6 +31,9 @@ services:
     image: zabbix/zabbix-web-nginx-mysql:ubuntu-${ZBX_VERSION:-3.4}-latest
     ports:
       - "${HTTP_BIND_ADDR:-0.0.0.0:80:80}"
+    networks:
+      zabbix_net:
+        ipv4_address: ${SUBNET_PREFIX:-172.15.0.}3
     links:
       - server
       - db
@@ -49,6 +57,9 @@ services:
     build:
       dockerfile: Dockerfile.database
       context: ./
+    networks:
+      zabbix_net:
+        ipv4_address: ${SUBNET_PREFIX:-172.15.0.}4
     environment:
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-password}
       - MYSQL_DATABASE=${MYSQL_DATABASE:-zabbix}
@@ -71,11 +82,13 @@ services:
       args:
         - ZBX_VERSION=${ZBX_VERSION:-3.4}
     privileged: true
-    links:
-      - server
+    network_mode: host
+    extra_hosts:
+      - "server:${SUBNET_PREFIX:-172.15.0.}2"
     environment:
       - ZBX_HOSTNAME=Zabbix server
       - ZBX_SERVER_HOST=server
+      - ZBX_LISTENIP=${SUBNET_PREFIX:-172.15.0.}1
     restart: unless-stopped
     logging:
       driver: "json-file"
@@ -86,6 +99,9 @@ services:
   smtp:
     hostname: smtp
     image: tianon/exim4
+    networks:
+      zabbix_net:
+        ipv4_address: ${SUBNET_PREFIX:-172.15.0.}6
     restart: unless-stopped
     logging:
       driver: "json-file"
@@ -103,8 +119,22 @@ services:
       - ./scripts/configurator.py:/configurator.py
     links:
       - frontend
+    extra_hosts:
+      - "agent:${SUBNET_PREFIX:-172.15.0.}1"
+    networks:
+      zabbix_net:
+        ipv4_address: ${SUBNET_PREFIX:-172.15.0.}7
     environment:
       - ZBX_SERVER_URL=http://frontend
       - ZBX_ADMIN_PASSWORD=${ZBX_ADMIN_PASSWORD:-zabbix}
       - ZBX_DISABLE_GUEST=${ZBX_DISABLE_GUEST:-true}
       - ZBX_AGENT_HOSTNAME=${ZBX_AGENT_HOSTNAME:-agent}
+
+networks:
+  zabbix_net:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+      -
+        subnet: ${SUBNET_PREFIX:-172.15.0.}0/24
