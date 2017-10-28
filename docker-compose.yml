@@ -15,7 +15,7 @@ services:
         ipv4_address: ${SUBNET_PREFIX:-172.15.0.}2
     links:
       - db
-      - smtp
+      - smtp:smtp.local
     extra_hosts:
       - "agent:${SUBNET_PREFIX:-172.15.0.}1"
     environment:
@@ -79,7 +79,6 @@ services:
         max-file: "5"
 
   agent:
-    hostname: agent
     build:
       dockerfile: Dockerfile.agent
       context: ./
@@ -93,6 +92,9 @@ services:
       - ZBX_HOSTNAME=Zabbix server
       - ZBX_SERVER_HOST=server
       - ZBX_LISTENIP=${SUBNET_PREFIX:-172.15.0.}1
+      - SMTP_SERVER=smtp.local
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
     restart: unless-stopped
     logging:
       driver: "json-file"
@@ -133,7 +135,9 @@ services:
       - ZBX_ADMIN_PASSWORD=${ZBX_ADMIN_PASSWORD:-zabbix}
       - ZBX_DISABLE_GUEST=${ZBX_DISABLE_GUEST:-true}
       - ZBX_AGENT_HOSTNAME=${ZBX_AGENT_HOSTNAME:-agent}
-
+      - SMTP_SERVER=smtp.local
+      - SMTP_EMAIL=${SMTP_EMAIL:-monitor@smtp.local}
+      - ADMIN_EMAIL_ADDRESS=${ADMIN_EMAIL_ADDRESS:-admin@smtp.local}
 networks:
   zabbix_net:
     driver: bridge

@@ -4,7 +4,7 @@
 # This script is used for configuring Zabbix server by using API
 #
 
-import argparse, logging, os, socket, time
+import argparse, logging, os, re, socket, time
 from pyzabbix import ZabbixAPI
 
 parser = argparse.ArgumentParser(prog="./configurator.py", description="Zabbix configurator")
@@ -15,6 +15,16 @@ options = vars(args)
 logging.basicConfig()
 logger = logging.getLogger('Configurator')
 logger.setLevel("DEBUG" if options["debug"] else "INFO")
+
+def check_email(email_address):
+    if re.match(r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)", email_address):
+        return 1
+    else:
+        error("Email address %s is incorrect."%email_address)
+
+def error(msg=""):
+    logger.error(msg)
+    exit(1)
 
 class Configurator:
     def __init__(self):
@@ -32,15 +42,25 @@ class Configurator:
         # If server is unreachable than try to reconnect self.attempts_max_count times after wait timeout
         self.login_attempt_wait_timeout = 5
         self.login_attempts_max_count = 10
+        # SMTP settings
+        self.smtp_server = os.environ["SMTP_SERVER"]
+        self.smtp_email = os.environ["SMTP_EMAIL"]
+        if check_email(self.smtp_email):
+            self.smtp_helo = os.environ["SMTP_EMAIL"].split("@")[1]
+            logger.debug("SMTP_HELO value is: %s."%(self.smtp_helo))
+        self.admin_email_address = os.environ["ADMIN_EMAIL_ADDRESS"]
+        self.default_notify_period = "1-7,00:00-24:00"
+        self.default_severity = int("111000",2)
+        self.default_report_action = "Report problems to Zabbix administrators"
         #
         self.zapi = ZabbixAPI(self.url)
 
     def login(self):
-        logger.debug('Login into Zabbix server (%s)'%(self.url))
+        logger.debug("Login into Zabbix server (%s)."%(self.url))
         login_error = False
         for attempt in range(0,self.login_attempts_max_count):
             if login_error:
-                logger.info("Login attemtp %d/%d with %d sec inteval"%(attempt+1, self.login_attempts_max_count, self.login_attempt_wait_timeout))
+                logger.info("Login attemtp %d/%d with %d sec inteval."%(attempt+1, self.login_attempts_max_count, self.login_attempt_wait_timeout))
                 time.sleep(self.login_attempt_wait_timeout)
             try:
                 self.zapi.login(self.default_admin_username, self.default_admin_password)
@@ -55,8 +75,7 @@ class Configurator:
                 except:
                     login_error = True
         if login_error:
-            logger.critical("Can not login into Zabbix server after %d attemtps."%(attempt))
-            exit(1)
+            error("Can not login into Zabbix server after %d attemtps."%(attempt))
         self.uid = self.zapi.user.get(filter={"alias": self.default_admin_username})[0]["userid"]
 
     def logout(self):
@@ -78,12 +97,11 @@ class Configurator:
 
     def add_user_to_group(self, username, group_name):
         uid=self.zapi.user.get(filter={"alias": username})[0]["userid"]
-        logger.debug("Check user is already in group %s"%(group_name))
+        logger.debug("Check user is already in group %s."%(group_name))
         try:
             group = self.zapi.usergroup.get(filter={"name": group_name},selectUsers=group_name)[0]
         except:
-            logger.error("Can not retrieve information from group: %s"%(group_name))
-            exit(1)
+            error("Can not retrieve information from group: %s."%(group_name))
         users_ids = group["users"]
         ids=[]
         if len(users_ids)>0:
@@ -91,7 +109,7 @@ class Configurator:
                 ids.append(element["userid"])
         if not uid in ids:
             logger.debug("Adding user %s into group %s."%(username, group_name))
-            logger.debug("Current list of users in group: "+str(ids if len(ids)>0 else 'list is empty.'))
+            logger.debug("Current list of users in group: "+str(ids if len(ids)>0 else "list is empty")+".")
             ids.append(uid)
             self.zapi.usergroup.update(usrgrpid=group["usrgrpid"], userids=ids)
         else:
@@ -107,28 +125,83 @@ class Configurator:
             logger.info("User %s is already disabled."%(username))
 
     def get_host_info(self, hostname="", host_id=""):
-        logger.debug("Retrieving inforation about host %s"%(hostname))
+        logger.debug("Retrieving inforation about host %s."%(hostname))
         rule = {"host": hostname} if hostname != "" else {"hostid": host_id}
         return self.zapi.host.get(filter=rule)
 
     def enable_host(self, host_id):
         host = self.get_host_info(host_id=host_id)
         if host[0]["status"] != "0":
-            logger.debug("Enabling host with id %s"%(host_id))
+            logger.debug("Enabling host with id %s."%(host_id))
             self.zapi.host.update(hostid=host_id, status=0)
             return 1
-        logger.debug("Host with id %s is already enabled"%(host_id))
+        logger.debug("Host with id %s is already enabled."%(host_id))
         return 0
 
     def update_host_addr(self, host_id, dns="", ip="", use_ip=1):
         interface = self.zapi.hostinterface.get(hostids=[host_id])[0]
         interface_id = interface["interfaceid"]
         if (interface["ip"] != ip) or (interface["dns"] != dns):
-            logger.debug("Setting new addresses for host with id %s"%(host_id))
+            logger.debug("Setting new addresses for host with id %s."%(host_id))
             self.zapi.hostinterface.update(interfaceid=interface_id, ip=ip, dns=dns, port=self.default_agent_port, useip=use_ip)
             return 1
         else:
             return 0
+
+    def update_mediatype(self, name, data=dict()):
+        try:
+            media=self.zapi.mediatype.get(filter={"description": name})[0]
+            data["mediatypeid"] = media["mediatypeid"]
+            logger.debug("Updating media with next data:")
+            logger.debug(data)
+            self.zapi.mediatype.update(data)
+        except:
+            error("Could not update mediatype with name: %s."%(name))
+        return 1
+
+    def update_user_email_settings(self, username, email):
+        uid = self.zapi.user.get(filter={"alias": username})[0]["userid"]
+        medias = []
+        if email.strip() != "":
+            logger.debug("Adding new email setting for user %s (uid: %s)."%(username,uid))
+            delimiter = ","
+            for email_address in email.split(delimiter):
+                if check_email(email_address):
+                    logger.debug("Adding email address: %s"%(email_address))
+                    medias.append({
+                        "mediatypeid": 1,
+                        "sendto": email_address,
+                        "active": 0,
+                        "severity": self.default_severity,
+                        "period": self.default_notify_period
+                    })
+            logger.debug("Cleanup current media for user.")
+            self.zapi.user.updatemedia(users=[{"userid": uid}], medias=[])
+            self.zapi.user.updatemedia(
+                users=[{"userid": uid}],
+                medias=medias
+            )
+            return 1
+        return 0
+
+    def enable_action(self, name):
+        try:
+            logger.debug("Trying to get actionid with name: %s."%(name))
+            action = self.zapi.action.get(filter={"name": name})[0]
+            action_id = action["actionid"]
+            logger.debug("ActionID is: %s"%(action_id))
+        except:
+            logger.debug("Could not retrive action_id.")
+            return 0
+
+        if int(action["status"]) != 0:
+            logger.debug("Action with id %s is disabled, activating it."%(action_id))
+            if self.zapi.action.update(actionid=action_id, status=0):
+                logger.debug("Action was successfuly activated.")
+        elif int(action["status"]) == 0:
+            logger.debug("Action is already activated. Skipped.")
+            return 0
+        return 1
 
     def main(self):
         self.login()
@@ -139,9 +212,12 @@ class Configurator:
             self.disable_user(self.guest_username)
 
         host_id = self.get_host_info(hostname=self.hostname)[0]["hostid"];
-        logger.debug("%s has such id: %s"%(self.hostname, host_id))
-        logger.info("Associate local agent with %s"%(self.hostname) if self.update_host_addr(host_id, self.agent_dns_name, self.agent_ip_address, 0) else "Skipped address updating %s"%(self.hostname))
-        logger.info("Enabled %s host"%(self.hostname) if self.enable_host(host_id) else "Skipped enabling %s"%(self.hostname))
+        logger.debug("%s has such id: %s."%(self.hostname, host_id))
+        logger.info("Associate local agent with %s."%(self.hostname) if self.update_host_addr(host_id, self.agent_dns_name, self.agent_ip_address, 0) else "Skipped address updating %s."%(self.hostname))
+        logger.info("Enabled %s host."%(self.hostname) if self.enable_host(host_id) else "Skipped enabling %s."%(self.hostname))
+        logger.info("Configured default email media type." if self.update_mediatype(name="Email",data={"smtp_server": self.smtp_server, "smtp_email": self.smtp_email, "smtp_helo": self.smtp_helo}) else "Skipped configuring default media type.")
+        logger.info("Updated %s user email settings."%(self.default_admin_username) if self.update_user_email_settings(username=self.default_admin_username, email=self.admin_email_address) else "Skipped updating email settings")
+        logger.info("Enabled default notify action." if self.enable_action(self.default_report_action) else "Skipped activating the default notify action.")
 
         return self.logout()
 
@@ -150,7 +226,6 @@ if __name__ == "__main__":
     try:
         exit(app.main())
     except KeyboardInterrupt:
-        logger.critical("Interrupted by user.")
-        exit(1)
+        error("Interrupted by user.")
     except Exception:
         raise
