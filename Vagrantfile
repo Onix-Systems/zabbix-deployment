@@ -43,7 +43,7 @@ Vagrant.configure("2") do |config|
       mkdir -p /var/lib/data
       ln -sf /var/lib/data /vagrant/data
       cd /vagrant
-      ./setup-server.sh
+      ./scripts/setup-server.sh
   SHELL
 
 end
