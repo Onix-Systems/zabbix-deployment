@@ -43,8 +43,7 @@ Vagrant.configure("2") do |config|
       mkdir -p /var/lib/data
       ln -sf /var/lib/data /vagrant/data
       cd /vagrant
-      docker-compose build
-      docker-compose up -d
+      ./setup-server.sh
   SHELL
 
 end

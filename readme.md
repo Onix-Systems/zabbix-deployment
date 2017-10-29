@@ -4,7 +4,7 @@ Also there is Dockerfile that contains zabbix agent
 
 1. Zabbix server 3.4
 1. Zabbix frontend
-1. Zabbix agent
+1. Zabbix agent (is installed on host, not run inside the docker container)
 1. MariaDB 10.3
 1. Exim4 SMTP service
 
@@ -13,13 +13,27 @@ PS: Are used official docker images: https://hub.docker.com/u/zabbix/
 ###
 Requirements
 
+1. Debian family OS (scripts limits)
 1. docker-ce (1.13.0+)
 1. docker-compose
 
 ### Run Zabbix server
 
 ```shell
+$ ./setup-server.sh
+```
+
+#### Run and configured only server components
+```shell
 $ docker-compose up -d
+```
+
+### Install and configured external agent
+
+```shell
+$ ./setup-agent.sh -h
+...
+$ ./setup-agent.sh -s zabbix.local
 ```
 
 Frontend url is: http://localhost if you launch project on your local machine.
