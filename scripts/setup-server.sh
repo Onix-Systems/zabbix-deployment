@@ -13,6 +13,7 @@ cd $(dirname $0/)
 
 # Setting default variables
 SUBNET_PREFIX=172.15.0.
+DEFAULT_HOST_SECRET=""
 # Loading project options and overriding default variables
 if [ -e "../.env" ];  then source ../.env; fi
 SERVER=${SUBNET_PREFIX}254
@@ -23,4 +24,5 @@ docker-compose build &> /dev/null
 docker-compose up -d &> /dev/null
 echo "Done."
 echo "Installing and configuring host's agent."
-./scripts/setup-agent.sh -s ${SERVER} -l ${SUBNET_PREFIX}1
+echo $DEFAULT_HOST_METADATA
+./scripts/setup-agent.sh -s ${SERVER} -l ${SUBNET_PREFIX}1 --hostname $(hostname -f) -m "Linux ${DEFAULT_HOST_SECRET}"

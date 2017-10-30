@@ -12,6 +12,7 @@ if [ -e "../.env" ];  then source ../.env; fi
 CODE=""
 SERVER=""
 LISTEN_IP=""
+HOSTNAME=""
 
 HELP_MESSAGE="Usage: ./$(basename $0) [OPTION]
 Script for installing and configuration zabbix agent.
@@ -41,6 +42,10 @@ do
                 ;;
                 -s|--server)
                     SERVER="$2";
+                    shift
+                ;;
+                --hostname)
+                    HOSTNAME="Hostname=$2";
                     shift
                 ;;
                 -h|--help)
@@ -84,6 +89,7 @@ if [ -e "${CONFIG_FILE}" ]; then cp ${CONFIG_FILE} ${CONFIG_FILE}.backup; fi
 cat << EOF > ${CONFIG_FILE}
 Server=${SERVER}
 ${LISTEN_IP}
+${HOSTNAME}
 EOF
 if [ ! -z "${META}" ]; then
 cat << EOF >> ${CONFIG_FILE}

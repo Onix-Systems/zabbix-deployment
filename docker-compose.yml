@@ -111,6 +111,7 @@ services:
       - SMTP_SERVER=smtp.local
       - SMTP_EMAIL=${SMTP_EMAIL:-monitor@smtp.local}
       - ADMIN_EMAIL_ADDRESS=${ADMIN_EMAIL_ADDRESS:-admin@smtp.local}
+      - DEFAULT_HOST_SECRET=${DEFAULT_HOST_SECRET:- }
 networks:
   zabbix_net:
     driver: bridge

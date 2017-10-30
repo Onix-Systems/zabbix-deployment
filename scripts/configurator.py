@@ -52,6 +52,8 @@ class Configurator:
         self.default_notify_period = "1-7,00:00-24:00"
         self.default_severity = int("111000",2)
         self.default_report_action = "Report problems to Zabbix administrators"
+        # Auto registration
+        self.host_metadata = "Linux "+os.environ["DEFAULT_HOST_SECRET"] if "DEFAULT_HOST_SECRET" in os.environ and os.environ["DEFAULT_HOST_SECRET"].strip() != "" else ""
         #
         self.zapi = ZabbixAPI(self.url)
 
@@ -203,6 +205,44 @@ class Configurator:
             return 0
         return 1
 
+    def add_action(self, data):
+        # Check if exist current action or no
+        action = self.zapi.action.get(filter={"name": data["name"]})
+        if len(action)>0:
+            logger.debug("Action is updated with next data:")
+            #  Could not be updated with below element in dict
+            del data["eventsource"]
+            data["actionid"] = int(action[0]["actionid"])
+            logger.debug(data)
+            return self.zapi.action.update(data)
+        else:
+            logger.debug("Action is created.")
+            return self.zapi.action.create(data)
+
+    def add_auto_discovery_action(self, metadata=""):
+        if metadata != "":
+            logger.debug("Generating conditions from metadate elements.")
+            conditions = [ { "conditiontype": 24, "operator": 2, "value": data} for data in metadata.split(" ") ]
+            logger.debug("Adding auto discovery action for hosts with metadata: %s."%(metadata if metadata != "" else "not defined" ))
+            data = {
+                "name": "Auto registration rules for Linux servers",
+                "eventsource": 2,
+                "status": 0,
+                "operations": [
+                    { "operationtype": 2 },
+                    { "operationtype": 4, "opgroup": [ self.zapi.hostgroup.get(filter={"name": "Linux servers"})[0]["groupid"] ] },
+                    { "operationtype": 6, "optemplate": [ { "templateid": self.zapi.template.get(filter={"name": "Template OS Linux"})[0]["templateid"] } ] }
+                ],
+                "filter": {
+                    "evaltype": 1,
+                    "conditions": conditions
+                }
+            }
+            return self.add_action(data)
+        else:
+            logger.debug("Host metadata empty, such action is impossible to add because of security reason.")
+            return 0
+
     def main(self):
         self.login()
         if self.change_default_password():
@@ -218,6 +258,7 @@ class Configurator:
         logger.info("Configured default email media type." if self.update_mediatype(name="Email",data={"smtp_server": self.smtp_server, "smtp_email": self.smtp_email, "smtp_helo": self.smtp_helo}) else "Skipped configuring default media type.")
         logger.info("Updated %s user email settings."%(self.default_admin_username) if self.update_user_email_settings(username=self.default_admin_username, email=self.admin_email_address) else "Skipped updating email settings")
         logger.info("Enabled default notify action." if self.enable_action(self.default_report_action) else "Skipped activating the default notify action.")
+        logger.info("Added/Updated auto discovery action." if self.add_auto_discovery_action(self.host_metadata) else "Skipped adding auto discovery action.")
 
         return self.logout()
 
