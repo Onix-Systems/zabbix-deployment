@@ -1,3 +1,0 @@
-ARG ZBX_VERSION=3.4
-
-FROM zabbix/zabbix-agent:ubuntu-${ZBX_VERSION}-latest
