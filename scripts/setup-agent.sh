@@ -97,6 +97,10 @@ else
   exit 1
 fi
 
+printf "Checking zabbix agent service is enabled. "
+update-rc.d zabbix-agent enable
+echo "Done"
+
 printf "Restarting zabbix agent. "
 service zabbix-agent restart > /dev/null
 echo "Done."
