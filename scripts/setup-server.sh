@@ -18,8 +18,9 @@ if [ -e "../.env" ];  then source ../.env; fi
 SERVER=${SUBNET_PREFIX}254
 
 printf "Building, launching and configuring Zabbix server. "
+cd ..
 docker-compose build &> /dev/null
 docker-compose up -d &> /dev/null
 echo "Done."
 echo "Installing and configuring host's agent."
-./setup-agent.sh -s ${SERVER} -l ${SUBNET_PREFIX}1
+./scripts/setup-agent.sh -s ${SERVER} -l ${SUBNET_PREFIX}1
