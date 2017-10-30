@@ -34,7 +34,7 @@ services:
     hostname: frontend
     image: zabbix/zabbix-web-nginx-mysql:ubuntu-${ZBX_VERSION:-3.4}-latest
     ports:
-      - "${HTTP_BIND_ADDR:-0.0.0.0:80:80}"
+      - "${HTTP_BIND_ADDR:-0.0.0.0:80}:80"
     networks:
       - zabbix_net
     links:
