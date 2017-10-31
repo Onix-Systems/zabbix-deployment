@@ -33,7 +33,7 @@ $ docker-compose up -d
 ```shell
 $ ./setup-agent.sh -h
 ...
-$ ./setup-agent.sh -s zabbix.local
+$ ./setup-agent.sh -m "Linux ${DEFAULT_HOST_SECRET}" -s zabbix.local --hostname $(hostname -f)
 ```
 
 Frontend url is: http://localhost if you launch project on your local machine.

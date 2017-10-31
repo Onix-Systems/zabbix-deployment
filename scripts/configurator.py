@@ -50,8 +50,9 @@ class Configurator:
             logger.debug("SMTP_HELO value is: %s."%(self.smtp_helo))
         self.admin_email_address = os.environ["ADMIN_EMAIL_ADDRESS"]
         self.default_notify_period = "1-7,00:00-24:00"
-        self.default_severity = int("111000",2)
-        self.default_report_action = "Report problems to Zabbix administrators"
+        self.default_severity = int("111100",2)
+        self.default_admin_group = "Zabbix administrators"
+        self.default_report_action = "Report problems to "+self.default_admin_group
         # Auto registration
         self.host_metadata = "Linux "+os.environ["DEFAULT_HOST_SECRET"] if "DEFAULT_HOST_SECRET" in os.environ and os.environ["DEFAULT_HOST_SECRET"].strip() != "" else ""
         #
@@ -223,7 +224,7 @@ class Configurator:
         if metadata != "":
             logger.debug("Generating conditions from metadate elements.")
             conditions = [ { "conditiontype": 24, "operator": 2, "value": data} for data in metadata.split(" ") ]
-            logger.debug("Adding auto discovery action for hosts with metadata: %s."%(metadata if metadata != "" else "not defined" ))
+            logger.debug("Adding auto registration action for hosts with metadata: %s."%(metadata if metadata != "" else "not defined" ))
             data = {
                 "name": "Auto registration rules for Linux servers",
                 "eventsource": 2,
@@ -231,8 +232,19 @@ class Configurator:
                 "operations": [
                     { "operationtype": 2 },
                     { "operationtype": 4, "opgroup": [ self.zapi.hostgroup.get(filter={"name": "Linux servers"})[0]["groupid"] ] },
-                    { "operationtype": 6, "optemplate": [ { "templateid": self.zapi.template.get(filter={"name": "Template OS Linux"})[0]["templateid"] } ] }
+                    { "operationtype": 6, "optemplate": [ { "templateid": self.zapi.template.get(filter={"name": "Template OS Linux"})[0]["templateid"] } ] },
+                    {
+                        "operationtype": 0,
+                        "opmessage_grp": [{ "usrgrpid": self.zapi.usergroup.get(filter={"name": self.default_admin_group})[0]["usrgrpid"] }],
+                        "opmessage": { "mediatypeid": 0, "default_msg": 1}
+                    }
                 ],
+                "def_shortdata": "Auto registration: {HOST.HOST}",
+                "def_longdata":
+'''
+Host name: {HOST.HOST}
+Host IP: {HOST.IP}
+Agent port: {HOST.PORT}''',
                 "filter": {
                     "evaltype": 1,
                     "conditions": conditions
