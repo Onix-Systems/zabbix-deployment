@@ -4,7 +4,7 @@
 # This script is used for configuring Zabbix server by using API
 #
 
-import argparse, logging, os, re, socket, time
+import argparse, json, logging, os, re, socket, time
 from pyzabbix import ZabbixAPI
 
 parser = argparse.ArgumentParser(prog="./configurator.py", description="Zabbix configurator")
@@ -55,6 +55,8 @@ class Configurator:
         self.default_report_action = "Report problems to "+self.default_admin_group
         # Auto registration
         self.host_metadata = "Linux "+os.environ["DEFAULT_HOST_SECRET"] if "DEFAULT_HOST_SECRET" in os.environ and os.environ["DEFAULT_HOST_SECRET"].strip() != "" else ""
+        # Web scenario list
+        self.url_list = json.loads(os.environ["URL_LIST"]) if "URL_LIST" in os.environ and os.environ["URL_LIST"].strip() != "" else []
         #
         self.zapi = ZabbixAPI(self.url)
 
@@ -255,6 +257,67 @@ Agent port: {HOST.PORT}''',
             logger.debug("Host metadata empty, such action is impossible to add because of security reason.")
             return 0
 
+    def add_web_scenario(self, host_id, url_list):
+        logger.debug("Processing adding urls for monitoring.")
+        if len(url_list)>0:
+            host_name = self.get_host_info(host_id=host_id)[0]["name"]
+            for item in url_list:
+                logger.debug(item)
+                http_test = self.zapi.httptest.get(filter={"name": item["name"]}, hostids=host_id)
+                template = {
+                    "hostid": host_id,
+                    "name": item["name"],
+                    "delay": 60,
+                    "retries": 3,
+                    "steps": [{
+                        "no": 1,
+                        "name": "Step #1",
+                        "url": item["url"],
+                        "status_codes": "200",
+                        "follow_redirects": 1,
+                        "retrieve_mode": 0
+                    }]
+                }
+                if len(http_test) > 0:
+                    template["httptestid"] = http_test[0]["httptestid"]
+                    del template["hostid"]
+                    self.zapi.httptest.update(template)
+                else:
+                    self.zapi.httptest.create(template)
+                trigger = {
+                    "description": "Availability of %s by its url"%(item["name"]),
+                    "expression": "{"+host_name+":web.test.fail["+item["name"]+"].last(0)} <> 0",
+                    "priority": item["priority"] if "priority" in item else 1,
+                    "url": item["url"]
+                }
+
+                current_trigger = self.zapi.trigger.get(filter={"description": trigger["description"]})
+                if len(current_trigger)>0:
+                    trigger["triggerid"] = current_trigger[0]["triggerid"]
+                    try:
+                        self.update_trigger(trigger)
+                    except:
+                        error("Can not update the trigger with id %s."%(trigger["triggerid"]))
+                else:
+                    try:
+                        self.create_trigger(trigger)
+                    except:
+                        error("Can not create the trigger.")
+            return 1
+        else:
+            return 0
+
+    def create_trigger(self, data):
+        data["type"] = 0
+        logger.debug("Creating trigger.")
+        logger.debug(data)
+        return self.zapi.trigger.create(data)
+
+    def update_trigger(self, data):
+        logger.debug("Updateing trigger.")
+        logger.debug(data)
+        return self.zapi.trigger.update(data)
+
     def main(self):
         self.login()
         if self.change_default_password():
@@ -271,6 +334,7 @@ Agent port: {HOST.PORT}''',
         logger.info("Updated %s user email settings."%(self.default_admin_username) if self.update_user_email_settings(username=self.default_admin_username, email=self.admin_email_address) else "Skipped updating email settings")
         logger.info("Enabled default notify action." if self.enable_action(self.default_report_action) else "Skipped activating the default notify action.")
         logger.info("Added/Updated auto discovery action." if self.add_auto_discovery_action(self.host_metadata) else "Skipped adding auto discovery action.")
+        logger.info("Initialization checking web urls." if self.add_web_scenario(host_id=host_id, url_list=self.url_list) else "Skipped initialization of web urls.")
 
         return self.logout()
 
