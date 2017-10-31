@@ -19,9 +19,10 @@ Script for installing and configuration zabbix agent.
 Project: zabbix-deployment
 Options:
     -b, --bind [ip address]     Set IP address to listen by agent.
-    -m, --meta [string]         String to use for auto registration
+    -m, --meta [string]         String to use for auto registration.
     -s, --server [zabbix.local] Set zabbix server to connect by agent. This option is required.
-    -h, --help                  Show help
+    --hostname [agent.local]    Set agent hostname.
+    -h, --help                  Show help.
 
 Examples:
     \$ ./$(basename $0) --code secret --server zabbix.local
