@@ -285,7 +285,7 @@ Agent port: {HOST.PORT}''',
                 else:
                     self.zapi.httptest.create(template)
                 trigger = {
-                    "description": "Availability of %s by its url"%(item["name"]),
+                    "description": "Availability of %s by url"%(item["name"]),
                     "expression": "{"+host_name+":web.test.fail["+item["name"]+"].last(0)} <> 0",
                     "priority": item["priority"] if "priority" in item else 1,
                     "url": item["url"]
