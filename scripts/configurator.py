@@ -68,7 +68,9 @@ class Configurator:
             )
         except:
             error("Could not connect to database.")
-
+        self.default_authentication_type = 0
+        self.authentication_type = self.get_configuration()["authentication_type"]
+        self.configuration = json.loads(os.environ["ZBX_CONFIG"]) if "ZBX_CONFIG" in os.environ and os.environ["ZBX_CONFIG"].strip() != "" else []
 
     def login(self):
         logger.debug("Login into Zabbix server (%s)."%(self.url))
@@ -336,17 +338,42 @@ Agent port: {HOST.PORT}''',
         cur.execute("SELECT * FROM config")
         field = [i[0] for i in cur.description]
         result=dict()
-        print field[0]
         for i, row in enumerate(cur.fetchone()):
               result[field[i]]=row
         cur.close()
         return result
 
-    def update_configuration(self, data=dict()):
+    def update_configuration(self, config=dict()):
         current = self.get_configuration()
+        logger.debug("Updating configuration:")
+        logger.debug(config)
+        logger.debug("Comparasing desired config with current.")
+        if len(config)>0:
+            for key, value in config.items():
+                if current[key] == value:
+                    del config[key]
+        if len(config)>0:
+            logger.debug("Updating configuration.")
+            query = "UPDATE config SET "
+            for key, value in config.items():
+                if isinstance(value,int):
+                    query += "%s=%d "%(key,value)
+                else:
+                    query += "%s='%s' "%(key,value)
+            logger.debug(query)
+            cur = self.db.cursor()
+            cur.execute(query)
+            self.db.commit()
+            cur.close()
+            return 1
         return 0
 
     def main(self):
+
+        if self.authentication_type != self.default_authentication_type:
+            logger.debug("Changing authentication_type to default to use api with basic credentials.")
+            self.update_configuration(config={"authentication_type":self.default_authentication_type})
+
         self.login()
         if self.change_default_password():
             self.relogin()
@@ -364,7 +391,10 @@ Agent port: {HOST.PORT}''',
         logger.info("Added/Updated auto discovery action." if self.add_auto_discovery_action(self.host_metadata) else "Skipped adding auto discovery action.")
         logger.info("Initialization checking web urls." if self.add_web_scenario(host_id=host_id, url_list=self.url_list) else "Skipped initialization of web urls.")
 
-        self.update_configuration()
+        logger.info("Updating Zabbix configuration" if self.update_configuration(self.configuration) else "Nothing to update. Skipped.")
+        if self.authentication_type != self.default_authentication_type:
+            logger.debug("Returned authentication_type to initial state.")
+            self.update_configuration(config={"authentication_type": self.authentication_type})
 
         return self.logout()
 
