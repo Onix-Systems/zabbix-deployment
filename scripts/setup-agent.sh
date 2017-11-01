@@ -13,6 +13,9 @@ CODE=""
 SERVER=""
 LISTEN_IP=""
 HOSTNAME=""
+ENABLE_DOCKER_MODULE=false
+MODULE_FOLDER=/var/lib/modules/zabbix
+MODULE_FILENAME=zabbix_module_docker.so
 
 HELP_MESSAGE="Usage: ./$(basename $0) [OPTION]
 Script for installing and configuration zabbix agent.
@@ -22,6 +25,7 @@ Options:
     -m, --meta [string]         String to use for auto registration.
     -s, --server [zabbix.local] Set zabbix server to connect by agent. This option is required.
     --hostname [agent.local]    Set agent hostname.
+    --enable-docker-module      Download and enable docker module for agent.
     -h, --help                  Show help.
 
 Examples:
@@ -52,6 +56,10 @@ do
                 -h|--help)
                     SHOW_HELP=true
                 ;;
+                --enable-docker-module)
+                    ENABLE_DOCKER_MODULE=true
+                    shift
+                ;;
                 *) # unknown option
                     echo "ERROR! Unknown option. See help."
                     exit 1
@@ -64,6 +72,8 @@ if [ "${SHOW_HELP}" == "true" ] || [ -z "${SERVER}" ]; then
   echo "${HELP_MESSAGE}"
   exit 0
 fi
+
+mkdir -p ${MODULE_FOLDER}
 
 printf "Checking OS compartible with script. "
 if [ ! -e "/etc/debian_version" ]; then
@@ -83,22 +93,42 @@ printf "Installing zabbix-agent. "
 apt-get install -y zabbix-agent > /dev/null
 echo "Done."
 
+printf "Downloading docker module. "
+if [ "${ENABLE_DOCKER_MODULE}" == true ]; then
+    wget -q https://github.com/monitoringartist/zabbix-docker-monitoring/raw/gh-pages/$(lsb_release -is | tr '[:upper:]' '[:lower:]')$(lsb_release -rs | cut -d"." -f1)/${ZBX_VERSION}/${MODULE_FILENAME} \
+         -O ${MODULE_FOLDER}/${MODULE_FILENAME}
+else
+    echo "Skipped."
+fi
+
 printf "Configuring zabbix agent to work with server: ${SERVER}. "
 CONFIG_FILE=/etc/zabbix/zabbix_agentd.d/custom.conf
+
 if [ -e "$(dirname ${CONFIG_FILE})" ]; then
+
 if [ -e "${CONFIG_FILE}" ]; then cp ${CONFIG_FILE} ${CONFIG_FILE}.backup; fi
 cat << EOF > ${CONFIG_FILE}
 Server=${SERVER}
 ${LISTEN_IP}
 ${HOSTNAME}
+LoadModulePath=${MODULE_FOLDER}
 EOF
+
 if [ ! -z "${META}" ]; then
 cat << EOF >> ${CONFIG_FILE}
 ServerActive=${SERVER}
 HostMetadata=${META}
 EOF
 fi
+
+if [ "${ENABLE_DOCKER_MODULE}" == true ]; then
+cat << EOF >> ${CONFIG_FILE}
+LoadModule=${MODULE_FILENAME}
+EOF
+fi
+
 echo "Done."
+
 else
   echo "Failed."
   exit 1

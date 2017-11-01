@@ -7,7 +7,7 @@ docker-compose --version &> /dev/null
 if [ "$?" -ne 0 ]; then echo "Failed (please install docker-compose)."; exit 1; fi
 echo "Done."
 
-set -e
+# set -e
 
 cd $(dirname $0/)
 
@@ -25,4 +25,4 @@ docker-compose up -d &> /dev/null
 echo "Done."
 echo "Installing and configuring host's agent."
 echo $DEFAULT_HOST_METADATA
-./scripts/setup-agent.sh -s ${SERVER} -l ${SUBNET_PREFIX}1 --hostname $(hostname -f) -m "Linux ${DEFAULT_HOST_SECRET}"
+./scripts/setup-agent.sh -s ${SERVER} -l ${SUBNET_PREFIX}1 --hostname $(hostname -f) -m "Linux ${DEFAULT_HOST_SECRET}" --enable-docker-module
