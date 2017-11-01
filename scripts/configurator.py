@@ -263,7 +263,7 @@ Agent port: {HOST.PORT}''',
             host_name = self.get_host_info(host_id=host_id)[0]["name"]
             for item in url_list:
                 logger.debug(item)
-                http_test = self.zapi.httptest.get(filter={"name": item["name"]}, hostids=host_id)
+                http_test = self.zapi.httptest.get(filter={"name": item["name"]}, hostids=host_id, selectSteps="extend")
                 template = {
                     "hostid": host_id,
                     "name": item["name"],
@@ -279,6 +279,9 @@ Agent port: {HOST.PORT}''',
                     }]
                 }
                 if len(http_test) > 0:
+                    if http_test[0]["name"] == template["name"] and http_test[0]["steps"][0]["url"] == template["steps"][0]["url"]:
+                        logger.debug("No changed were detected. Skipped updating the web scenario")
+                        continue
                     template["httptestid"] = http_test[0]["httptestid"]
                     del template["hostid"]
                     self.zapi.httptest.update(template)
