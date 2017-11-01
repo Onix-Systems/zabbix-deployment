@@ -2,8 +2,11 @@ FROM ubuntu:xenial
 
 RUN apt-get update && \
     apt-get install -y \
+      libmysqlclient-dev \
       python-pip && \
-    pip install pyzabbix && \
+    pip install \
+      simplemysql \
+      pyzabbix && \
     apt-get clean
 
 CMD /bin/bash

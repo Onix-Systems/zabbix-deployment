@@ -4,7 +4,7 @@
 # This script is used for configuring Zabbix server by using API
 #
 
-import argparse, json, logging, os, re, socket, time
+import argparse, json, logging, MySQLdb, os, re, socket, time
 from pyzabbix import ZabbixAPI
 
 parser = argparse.ArgumentParser(prog="./configurator.py", description="Zabbix configurator")
@@ -59,6 +59,16 @@ class Configurator:
         self.url_list = json.loads(os.environ["URL_LIST"]) if "URL_LIST" in os.environ and os.environ["URL_LIST"].strip() != "" else []
         #
         self.zapi = ZabbixAPI(self.url)
+        try:
+            self.db = MySQLdb.connect(
+                host = os.environ["DB_SERVER_HOST"],
+                user = os.environ["MYSQL_USER"],
+                passwd = os.environ["MYSQL_PASSWORD"],
+                db = os.environ["MYSQL_DATABASE"]
+            )
+        except:
+            error("Could not connect to database.")
+
 
     def login(self):
         logger.debug("Login into Zabbix server (%s)."%(self.url))
@@ -321,6 +331,21 @@ Agent port: {HOST.PORT}''',
         logger.debug(data)
         return self.zapi.trigger.update(data)
 
+    def get_configuration(self):
+        cur = self.db.cursor()
+        cur.execute("SELECT * FROM config")
+        field = [i[0] for i in cur.description]
+        result=dict()
+        print field[0]
+        for i, row in enumerate(cur.fetchone()):
+              result[field[i]]=row
+        cur.close()
+        return result
+
+    def update_configuration(self, data=dict()):
+        current = self.get_configuration()
+        return 0
+
     def main(self):
         self.login()
         if self.change_default_password():
@@ -338,6 +363,8 @@ Agent port: {HOST.PORT}''',
         logger.info("Enabled default notify action." if self.enable_action(self.default_report_action) else "Skipped activating the default notify action.")
         logger.info("Added/Updated auto discovery action." if self.add_auto_discovery_action(self.host_metadata) else "Skipped adding auto discovery action.")
         logger.info("Initialization checking web urls." if self.add_web_scenario(host_id=host_id, url_list=self.url_list) else "Skipped initialization of web urls.")
+
+        self.update_configuration()
 
         return self.logout()
 

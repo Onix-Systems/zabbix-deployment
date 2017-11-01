@@ -98,6 +98,7 @@ services:
       - ./scripts/configurator.py:/configurator.py
     links:
       - frontend
+      - db
     extra_hosts:
       - "agent:${SUBNET_PREFIX:-172.15.0.}1"
     networks:
@@ -113,6 +114,11 @@ services:
       - ADMIN_EMAIL_ADDRESS=${ADMIN_EMAIL_ADDRESS:-admin@smtp.local}
       - DEFAULT_HOST_SECRET=${DEFAULT_HOST_SECRET:- }
       - URL_LIST=${URL_LIST:- }
+      - DB_SERVER_HOST=db
+      - MYSQL_DATABASE=${MYSQL_DATABASE:-zabbix}
+      - MYSQL_USER=${MYSQL_USER:-zabbix}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD:-zabbix}
+      - ZBX_CONFIG=${ZBX_CONFIG:- }
 networks:
   zabbix_net:
     driver: bridge
