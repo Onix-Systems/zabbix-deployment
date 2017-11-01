@@ -71,6 +71,7 @@ class Configurator:
         self.default_authentication_type = 0
         self.authentication_type = self.get_configuration()["authentication_type"]
         self.configuration = json.loads(os.environ["ZBX_CONFIG"]) if "ZBX_CONFIG" in os.environ and os.environ["ZBX_CONFIG"].strip() != "" else []
+        self.admin_users = json.loads(os.environ["ZBX_ADMIN_USERS"]) if "ZBX_ADMIN_USERS" in os.environ and os.environ["ZBX_ADMIN_USERS"].strip() != "" else []
 
     def login(self):
         logger.debug("Login into Zabbix server (%s)."%(self.url))
@@ -368,6 +369,20 @@ Agent port: {HOST.PORT}''',
             return 1
         return 0
 
+    def add_user(self, user=dict(), groups=list(), user_type=1):
+        # Check if such user is already exist in database
+        u = self.zapi.user.get(filter={"alias": user["name"]})
+        if len(u) == 0:
+            logger.debug("Such user does not exist. Adding.")
+            self.zapi.user.create({
+                "alias": user["name"],
+                "passwd": user["password"],
+                "usrgrps": groups,
+                "type": user_type
+            })
+            return 1
+        return 0
+
     def main(self):
 
         if self.authentication_type != self.default_authentication_type:
@@ -390,6 +405,12 @@ Agent port: {HOST.PORT}''',
         logger.info("Enabled default notify action." if self.enable_action(self.default_report_action) else "Skipped activating the default notify action.")
         logger.info("Added/Updated auto discovery action." if self.add_auto_discovery_action(self.host_metadata) else "Skipped adding auto discovery action.")
         logger.info("Initialization checking web urls." if self.add_web_scenario(host_id=host_id, url_list=self.url_list) else "Skipped initialization of web urls.")
+
+        if len(self.admin_users)>0:
+            for user in self.admin_users:
+                logger.info("Adding user %s as administrator."%(user["name"]))
+                if not self.add_user(user=user, groups = [ { "usrgrpid": self.zapi.usergroup.get(filter={"name": self.default_admin_group})[0]["usrgrpid"]} ], user_type=3):
+                    logger.info("Skipped.")
 
         logger.info("Updating Zabbix configuration" if self.update_configuration(self.configuration) else "Nothing to update. Skipped.")
         if self.authentication_type != self.default_authentication_type:

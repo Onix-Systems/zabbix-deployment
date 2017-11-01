@@ -119,6 +119,7 @@ services:
       - MYSQL_USER=${MYSQL_USER:-zabbix}
       - MYSQL_PASSWORD=${MYSQL_PASSWORD:-zabbix}
       - ZBX_CONFIG=${ZBX_CONFIG:- }
+      - ZBX_ADMIN_USERS=${ZBX_ADMIN_USERS:- }
 networks:
   zabbix_net:
     driver: bridge
