@@ -58,7 +58,6 @@ do
                 ;;
                 --enable-docker-module)
                     ENABLE_DOCKER_MODULE=true
-                    shift
                 ;;
                 *) # unknown option
                     echo "ERROR! Unknown option. See help."
