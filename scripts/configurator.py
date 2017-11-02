@@ -4,8 +4,9 @@
 # This script is used for configuring Zabbix server by using API
 #
 
-import argparse, json, logging, MySQLdb, os, re, socket, time
+import argparse, json, logging, MySQLdb, os, pycurl, re, socket, time
 from pyzabbix import ZabbixAPI
+from StringIO import StringIO
 
 parser = argparse.ArgumentParser(prog="./configurator.py", description="Zabbix configurator")
 parser.add_argument("--debug", action="store_true", help="Enable debug mode")
@@ -21,6 +22,18 @@ def check_email(email_address):
         return 1
     else:
         error("Email address %s is incorrect."%email_address)
+
+def check_http_code(url, response_code=200):
+    buffer = StringIO()
+    c = pycurl.Curl()
+    c.setopt(c.URL, url)
+    c.setopt(c.WRITEDATA, buffer)
+    c.perform()
+    if c.getinfo(c.RESPONSE_CODE) == response_code:
+        c.close()
+        return 1
+    c.close()
+    return 0
 
 def error(msg=""):
     logger.error(msg)
@@ -40,8 +53,8 @@ class Configurator:
         self.agent_ip_address = socket.gethostbyname(self.agent_dns_name)
         self.default_agent_port = 10050
         # If server is unreachable than try to reconnect self.attempts_max_count times after wait timeout
-        self.login_attempt_wait_timeout = 5
-        self.login_attempts_max_count = 10
+        self.connect_attempt_wait_timeout = 5
+        self.connect_attempts_max_count = 10
         # SMTP settings
         self.smtp_server = os.environ["SMTP_SERVER"]
         self.smtp_email = os.environ["SMTP_EMAIL"]
@@ -53,6 +66,7 @@ class Configurator:
         self.default_severity = int("111100",2)
         self.default_admin_group = "Zabbix administrators"
         self.default_user_group = "Operation managers"
+        self.default_group_without_gui_access = "No access to the frontend"
         self.default_report_action = "Report problems to "+self.default_admin_group
         # Auto registration
         self.host_metadata = "Linux "+os.environ["DEFAULT_HOST_SECRET"] if "DEFAULT_HOST_SECRET" in os.environ and os.environ["DEFAULT_HOST_SECRET"].strip() != "" else ""
@@ -60,6 +74,15 @@ class Configurator:
         self.url_list = json.loads(os.environ["URL_LIST"]) if "URL_LIST" in os.environ and os.environ["URL_LIST"].strip() != "" else []
         #
         self.zapi = ZabbixAPI(self.url)
+        logger.info("Waiting while Zabbix server will be reachable.")
+        for attempt in range(0,self.connect_attempts_max_count):
+            try:
+                if check_http_code(self.url):
+                    break;
+            except:
+                logger.debug("Waiting for while Zabbix will be reachable %d/%d with %d sec interval."%(attempt+1, self.connect_attempts_max_count, self.connect_attempt_wait_timeout))
+                time.sleep(self.connect_attempt_wait_timeout)
+        logger.info("Connecting to Zabbix database.")
         try:
             self.db = MySQLdb.connect(
                 host = os.environ["DB_SERVER_HOST"],
@@ -68,7 +91,7 @@ class Configurator:
                 db = os.environ["MYSQL_DATABASE"]
             )
         except:
-            error("Could not connect to database.")
+            error("Could not connect to Zabbix database")
         self.default_authentication_type = 0
         self.authentication_type = self.get_configuration()["authentication_type"]
         self.configuration = json.loads(os.environ["ZBX_CONFIG"]) if "ZBX_CONFIG" in os.environ and os.environ["ZBX_CONFIG"].strip() != "" else []
@@ -77,10 +100,10 @@ class Configurator:
     def login(self):
         logger.debug("Login into Zabbix server (%s)."%(self.url))
         login_error = False
-        for attempt in range(0,self.login_attempts_max_count):
+        for attempt in range(0,self.connect_attempts_max_count):
             if login_error:
-                logger.info("Login attemtp %d/%d with %d sec inteval."%(attempt+1, self.login_attempts_max_count, self.login_attempt_wait_timeout))
-                time.sleep(self.login_attempt_wait_timeout)
+                logger.info("Login attemtp %d/%d with %d sec inteval."%(attempt+1, self.connect_attempts_max_count, self.connect_attempt_wait_timeout))
+                time.sleep(self.connect_attempt_wait_timeout)
             try:
                 self.zapi.login(self.default_admin_username, self.default_admin_password)
                 login_error = False

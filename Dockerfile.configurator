@@ -2,10 +2,13 @@ FROM ubuntu:xenial
 
 RUN apt-get update && \
     apt-get install -y \
+      libcurl4-openssl-dev \
       libmysqlclient-dev \
+      libssl-dev \
       python-pip && \
     pip install \
       simplemysql \
+      pycurl \
       pyzabbix && \
     apt-get clean
 
