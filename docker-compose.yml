@@ -96,6 +96,7 @@ services:
     command: /configurator.py ${CONFIGURATOR_OPTIONS:- }
     volumes:
       - ./scripts/configurator.py:/configurator.py
+      - ./templates:/templates
     links:
       - frontend
       - db
@@ -120,6 +121,7 @@ services:
       - MYSQL_PASSWORD=${MYSQL_PASSWORD:-zabbix}
       - ZBX_CONFIG=${ZBX_CONFIG:- }
       - ZBX_ADMIN_USERS=${ZBX_ADMIN_USERS:- }
+      - TEMPLATES_FOLDER=/templates
 networks:
   zabbix_net:
     driver: bridge

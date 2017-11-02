@@ -67,6 +67,7 @@ class Configurator:
         self.default_admin_group = "Zabbix administrators"
         self.default_user_group = "Operation managers"
         self.default_report_action = "Report problems to "+self.default_admin_group
+        self.templates_folder = os.environ["TEMPLATES_FOLDER"] if "TEMPLATES_FOLDER" in os.environ else ""
         # Auto registration
         self.host_metadata = "Linux "+os.environ["DEFAULT_HOST_SECRET"] if "DEFAULT_HOST_SECRET" in os.environ and os.environ["DEFAULT_HOST_SECRET"].strip() != "" else ""
         # Web scenario list
@@ -425,6 +426,27 @@ Agent port: {HOST.PORT}''',
             return 1
         return 0
 
+    def add_templates(self):
+        template_ext = "xml"
+        templates = []
+        logger.debug("Finding templates in folder: %s."%(self.templates_folder))
+        if os.access(self.templates_folder, os.R_OK):
+            for filename in os.listdir(self.templates_folder):
+                if filename.endswith(template_ext):
+                    templates.append(filename)
+                    with open(self.templates_folder+"/"+filename) as f:
+                        self.zapi.confimport(template_ext, f.read(), {"templates": {"createMissing": True, "updateExisting": True}})
+                    logger.debug("Template %s was imported."%(filename))
+            if templates.count == 0:
+                logger.debug("No templates were found.")
+                return 0
+            logger.debug("Was found next list of templates:")
+            logger.debug(templates)
+        else:
+            error("Could not access to templates folder.")
+
+        return 1
+
     def main(self):
 
         if self.authentication_type != self.default_authentication_type:
@@ -447,6 +469,8 @@ Agent port: {HOST.PORT}''',
         logger.info("Enabled default notify action." if self.enable_action(self.default_report_action) else "Skipped activating the default notify action.")
         logger.info("Added/Updated auto discovery action." if self.add_auto_discovery_action(self.host_metadata) else "Skipped adding auto discovery action.")
         logger.info("Initialization checking web urls." if self.add_web_scenario(host_id=host_id, url_list=self.url_list) else "Skipped initialization of web urls.")
+        logger.info("Adding zabbix templates." if self.templates_folder != "" and self.add_templates() else "No templates folder is identified.")
+
         logger.info("Creating default user group %s."%(self.default_user_group))
         group_id = self.create_group(self.default_user_group)
         if len(self.admin_users)>0:
