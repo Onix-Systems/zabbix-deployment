@@ -356,11 +356,17 @@ Agent port: {HOST.PORT}''',
         if len(config)>0:
             logger.debug("Updating configuration.")
             query = "UPDATE config SET "
-            for key, value in config.items():
+            i = 0
+            length = len(config)
+            for key, value in config.iteritems():
+                i += 1
                 if isinstance(value,int):
-                    query += "%s=%d "%(key,value)
+                    query += "%s=%d"%(key,value)
                 else:
-                    query += "%s='%s' "%(key,value)
+                    query += "%s='%s'"%(key,value)
+                if i<length:
+                    query += ","
+
             logger.debug(query)
             cur = self.db.cursor()
             cur.execute(query)
