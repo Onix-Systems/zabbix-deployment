@@ -52,6 +52,7 @@ class Configurator:
         self.default_notify_period = "1-7,00:00-24:00"
         self.default_severity = int("111100",2)
         self.default_admin_group = "Zabbix administrators"
+        self.default_user_group = "Operation managers"
         self.default_report_action = "Report problems to "+self.default_admin_group
         # Auto registration
         self.host_metadata = "Linux "+os.environ["DEFAULT_HOST_SECRET"] if "DEFAULT_HOST_SECRET" in os.environ and os.environ["DEFAULT_HOST_SECRET"].strip() != "" else ""
@@ -112,6 +113,19 @@ class Configurator:
         else:
             logger.info("Skip updating the admin password.")
             return 0
+
+    def create_group(self, group_name):
+        group = self.zapi.usergroup.get(filter={"name": group_name})
+        if len(group)>0:
+            logger.debug("Group with name %s is already exist."%(group_name))
+            return group[0]["usrgrpid"]
+        else:
+            logger.debug("Creating group with name: %s."%(group_name))
+            return self.zapi.usergroup.create({
+                "name": group_name,
+                "gui_access": 0,
+                "users_status": 0
+            })["usrgrpids"][0]
 
     def add_user_to_group(self, username, group_name):
         uid=self.zapi.user.get(filter={"alias": username})[0]["userid"]
@@ -411,11 +425,12 @@ Agent port: {HOST.PORT}''',
         logger.info("Enabled default notify action." if self.enable_action(self.default_report_action) else "Skipped activating the default notify action.")
         logger.info("Added/Updated auto discovery action." if self.add_auto_discovery_action(self.host_metadata) else "Skipped adding auto discovery action.")
         logger.info("Initialization checking web urls." if self.add_web_scenario(host_id=host_id, url_list=self.url_list) else "Skipped initialization of web urls.")
-
+        logger.info("Creating default user group %s."%(self.default_user_group))
+        group_id = self.create_group(self.default_user_group)
         if len(self.admin_users)>0:
             for user in self.admin_users:
                 logger.info("Adding user %s as administrator."%(user["name"]))
-                if not self.add_user(user=user, groups = [ { "usrgrpid": self.zapi.usergroup.get(filter={"name": self.default_admin_group})[0]["usrgrpid"]} ], user_type=3):
+                if not self.add_user(user=user, groups = [{ "usrgrpid": group_id }], user_type=3):
                     logger.info("Skipped.")
 
         logger.info("Updating Zabbix configuration" if self.update_configuration(self.configuration) else "Nothing to update. Skipped.")
