@@ -5,7 +5,7 @@
 #
 
 import argparse, json, logging, MySQLdb, os, pycurl, re, socket, time
-from pyzabbix import ZabbixAPI
+from pyzabbix import ZabbixAPI, ZabbixAPIException
 from StringIO import StringIO
 
 parser = argparse.ArgumentParser(prog="./configurator.py", description="Zabbix configurator")
@@ -67,7 +67,7 @@ class Configurator:
         self.default_admin_group = "Zabbix administrators"
         self.default_user_group = "Operation managers"
         self.default_report_action = "Report problems to "+self.default_admin_group
-        self.templates_folder = os.environ["TEMPLATES_FOLDER"] if "TEMPLATES_FOLDER" in os.environ else ""
+        self.configuration_folder = os.environ["CONFIGURATION_FOLDER"] if "CONFIGURATION_FOLDER" in os.environ else ""
         # Auto registration
         self.host_metadata = "Linux "+os.environ["DEFAULT_HOST_SECRET"] if "DEFAULT_HOST_SECRET" in os.environ and os.environ["DEFAULT_HOST_SECRET"].strip() != "" else ""
         # Web scenario list
@@ -383,8 +383,6 @@ Agent port: {HOST.PORT}''',
 
     def update_configuration(self, config=dict()):
         current = self.get_configuration()
-        logger.debug("Updating configuration:")
-        logger.debug(config)
         logger.debug("Comparasing desired config with current.")
         if len(config)>0:
             for key, value in config.items():
@@ -392,6 +390,7 @@ Agent port: {HOST.PORT}''',
                     del config[key]
         if len(config)>0:
             logger.debug("Updating configuration.")
+            logger.debug(config)
             query = "UPDATE config SET "
             i = 0
             length = len(config)
@@ -426,24 +425,81 @@ Agent port: {HOST.PORT}''',
             return 1
         return 0
 
-    def add_templates(self):
-        template_ext = "xml"
-        templates = []
-        logger.debug("Finding templates in folder: %s."%(self.templates_folder))
-        if os.access(self.templates_folder, os.R_OK):
-            for filename in os.listdir(self.templates_folder):
-                if filename.endswith(template_ext):
-                    templates.append(filename)
-                    with open(self.templates_folder+"/"+filename) as f:
-                        self.zapi.confimport(template_ext, f.read(), {"templates": {"createMissing": True, "updateExisting": True}})
-                    logger.debug("Template %s was imported."%(filename))
-            if templates.count == 0:
-                logger.debug("No templates were found.")
+    def import_configuration(self):
+        configuration_format = "xml"
+        files_list = []
+        rules = {
+            'applications': {
+                'createMissing': True
+            },
+            'discoveryRules': {
+                'createMissing': True,
+                'updateExisting': True
+            },
+            'graphs': {
+                'createMissing': True,
+                'updateExisting': True
+            },
+            'groups': {
+                'createMissing': True
+            },
+            'hosts': {
+                'createMissing': True,
+                'updateExisting': True
+            },
+            'images': {
+                'createMissing': True,
+                'updateExisting': True
+            },
+            'items': {
+                'createMissing': True,
+                'updateExisting': True
+            },
+            'maps': {
+                'createMissing': True,
+                'updateExisting': True
+            },
+            'screens': {
+                'createMissing': True,
+                'updateExisting': True
+            },
+            'templateLinkage': {
+                'createMissing': True
+            },
+            'templates': {
+                'createMissing': True,
+                'updateExisting': True
+            },
+            'templateScreens': {
+                'createMissing': True,
+                'updateExisting': True
+            },
+            'triggers': {
+                'createMissing': True,
+                'updateExisting': True
+            },
+        }
+        logger.debug("Finding configuration in folder: %s."%(self.configuration_folder))
+        if os.access(self.configuration_folder, os.R_OK):
+            templates_count = 0
+            for filename in os.listdir(self.configuration_folder):
+                if filename.endswith(configuration_format):
+                    files_list.append(filename)
+                    with open(self.configuration_folder+"/"+filename) as f:
+                        source = f.read()
+                        try:
+                            self.zapi.confimport(configuration_format, source, rules)
+                        except ZabbixAPIException as e:
+                            error(e)
+                    logger.debug("Configuration %s was imported/updated."%(filename))
+                    templates_count += 1
+            if templates_count == 0:
+                logger.debug("No configuration was found.")
                 return 0
-            logger.debug("Was found next list of templates:")
-            logger.debug(templates)
+            logger.debug("Was found next list of configratuin templates:")
+            logger.debug(files_list)
         else:
-            error("Could not access to templates folder.")
+            error("Could not access to configuration folder.")
 
         return 1
 
@@ -469,7 +525,7 @@ Agent port: {HOST.PORT}''',
         logger.info("Enabled default notify action." if self.enable_action(self.default_report_action) else "Skipped activating the default notify action.")
         logger.info("Added/Updated auto discovery action." if self.add_auto_discovery_action(self.host_metadata) else "Skipped adding auto discovery action.")
         logger.info("Initialization checking web urls." if self.add_web_scenario(host_id=host_id, url_list=self.url_list) else "Skipped initialization of web urls.")
-        logger.info("Adding zabbix templates." if self.templates_folder != "" and self.add_templates() else "No templates folder is identified.")
+        logger.info("Adding zabbix configuration templates." if self.configuration_folder != "" and self.import_configuration() else "No configuration templates folder was identified.")
 
         logger.info("Creating default user group %s."%(self.default_user_group))
         group_id = self.create_group(self.default_user_group)
