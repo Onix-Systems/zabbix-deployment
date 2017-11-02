@@ -14,7 +14,7 @@ args = parser.parse_args()
 options = vars(args)
 
 logging.basicConfig()
-logger = logging.getLogger('Configurator')
+logger = logging.getLogger("Configurator")
 logger.setLevel("DEBUG" if options["debug"] else "INFO")
 
 def check_email(email_address):
@@ -429,54 +429,54 @@ Agent port: {HOST.PORT}''',
         configuration_format = "xml"
         files_list = []
         rules = {
-            'applications': {
-                'createMissing': True
+            "applications": {
+                "createMissing": True
             },
-            'discoveryRules': {
-                'createMissing': True,
-                'updateExisting': True
+            "discoveryRules": {
+                "createMissing": True,
+                "updateExisting": True
             },
-            'graphs': {
-                'createMissing': True,
-                'updateExisting': True
+            "graphs": {
+                "createMissing": True,
+                "updateExisting": True
             },
-            'groups': {
-                'createMissing': True
+            "groups": {
+                "createMissing": True
             },
-            'hosts': {
-                'createMissing': True,
-                'updateExisting': True
+            "hosts": {
+                "createMissing": True,
+                "updateExisting": True
             },
-            'images': {
-                'createMissing': True,
-                'updateExisting': True
+            "images": {
+                "createMissing": True,
+                "updateExisting": True
             },
-            'items': {
-                'createMissing': True,
-                'updateExisting': True
+            "items": {
+                "createMissing": True,
+                "updateExisting": True
             },
-            'maps': {
-                'createMissing': True,
-                'updateExisting': True
+            "maps": {
+                "createMissing": True,
+                "updateExisting": True
             },
-            'screens': {
-                'createMissing': True,
-                'updateExisting': True
+            "screens": {
+                "createMissing": True,
+                "updateExisting": True
             },
-            'templateLinkage': {
-                'createMissing': True
+            "templateLinkage": {
+                "createMissing": True
             },
-            'templates': {
-                'createMissing': True,
-                'updateExisting': True
+            "templates": {
+                "createMissing": True,
+                "updateExisting": True
             },
-            'templateScreens': {
-                'createMissing': True,
-                'updateExisting': True
+            "templateScreens": {
+                "createMissing": True,
+                "updateExisting": True
             },
-            'triggers': {
-                'createMissing': True,
-                'updateExisting': True
+            "triggers": {
+                "createMissing": True,
+                "updateExisting": True
             },
         }
         logger.debug("Finding configuration in folder: %s."%(self.configuration_folder))
