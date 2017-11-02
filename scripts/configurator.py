@@ -66,7 +66,6 @@ class Configurator:
         self.default_severity = int("111100",2)
         self.default_admin_group = "Zabbix administrators"
         self.default_user_group = "Operation managers"
-        self.default_group_without_gui_access = "No access to the frontend"
         self.default_report_action = "Report problems to "+self.default_admin_group
         # Auto registration
         self.host_metadata = "Linux "+os.environ["DEFAULT_HOST_SECRET"] if "DEFAULT_HOST_SECRET" in os.environ and os.environ["DEFAULT_HOST_SECRET"].strip() != "" else ""
