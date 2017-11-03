@@ -35,7 +35,7 @@ $ docker-compose up -d
 
 ### Install and configured external agent
 
-For server it is not necessary to run below described command, `./setup-server.sh` will launch it self.
+For server it is not necessary to run below described command, `./setup-server.sh` will launch it by self.
 
 ```shell
 $ cd ./scripts
