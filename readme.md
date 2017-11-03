@@ -17,9 +17,14 @@ Requirements
 1. docker-ce (1.13.0+)
 1. docker-compose
 
+### Preparing configuration file for server
+
+If default options are not enough, then please use `.env.example` to create own environment configuration file.
+
 ### Run Zabbix server
 
 ```shell
+$ cd ./scripts
 $ ./setup-server.sh
 ```
 
@@ -30,8 +35,11 @@ $ docker-compose up -d
 
 ### Install and configured external agent
 
+For server it is not necessary to run below described command, `./setup-server.sh` will launch it self.
+
 ```shell
-$ ./setup-agent.sh -h
+$ cd ./scripts
+$ ./setup-agent.sh --help
 ...
 $ ./setup-agent.sh -m "Linux ${DEFAULT_HOST_SECRET}" -s zabbix.local --hostname $(hostname -f)
 ```
