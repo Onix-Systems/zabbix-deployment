@@ -2,9 +2,9 @@
 
 printf "Checking OS compartible. "
 docker version &> /dev/null
-if [ "$?" -ne 0 ]; then echo "Failed (docker-engine could not be found)."; exit 1; fi
+if [ "$?" -ne 0 ]; then echo "Failed, docker-engine could not be found."; exit 1; fi
 docker-compose --version &> /dev/null
-if [ "$?" -ne 0 ]; then echo "Failed (please install docker-compose)."; exit 1; fi
+if [ "$?" -ne 0 ]; then echo "Failed, docker-compose could not be found."; exit 1; fi
 echo "Done."
 
 # set -e

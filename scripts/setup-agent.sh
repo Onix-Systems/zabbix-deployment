@@ -94,8 +94,11 @@ echo "Done."
 
 printf "Downloading docker module. "
 if [ "${ENABLE_DOCKER_MODULE}" == true ]; then
+    docker version &> /dev/null
+    if [ "$?" -ne 0 ]; then echo "Failed, docker-engine is not running."; exit 1; fi
     wget -q https://github.com/monitoringartist/zabbix-docker-monitoring/raw/gh-pages/$(lsb_release -is | tr '[:upper:]' '[:lower:]')$(lsb_release -rs | cut -d"." -f1)/${ZBX_VERSION}/${MODULE_FILENAME} \
          -O ${MODULE_FOLDER}/${MODULE_FILENAME}
+    usermod -aG docker zabbix
 else
     echo "Skipped."
 fi
