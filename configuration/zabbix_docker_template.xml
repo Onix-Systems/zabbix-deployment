@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>3.4</version>
-    <date>2017-11-03T09:13:07Z</date>
+    <date>2017-11-03T21:10:54Z</date>
     <groups>
         <group>
             <name>Templates</name>
@@ -25,7 +25,131 @@ Current template is compartible only with zabbix agent module, that can be found
                     <name>Docker</name>
                 </application>
             </applications>
-            <items/>
+            <items>
+                <item>
+                    <name>Docker dangling images</name>
+                    <type>0</type>
+                    <snmp_community/>
+                    <snmp_oid/>
+                    <key>docker.istatus[Dangling]</key>
+                    <delay>600s</delay>
+                    <history>30d</history>
+                    <trends>30d</trends>
+                    <status>0</status>
+                    <value_type>3</value_type>
+                    <allowed_hosts/>
+                    <units/>
+                    <snmpv3_contextname/>
+                    <snmpv3_securityname/>
+                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
+                    <snmpv3_authprotocol>0</snmpv3_authprotocol>
+                    <snmpv3_authpassphrase/>
+                    <snmpv3_privprotocol>0</snmpv3_privprotocol>
+                    <snmpv3_privpassphrase/>
+                    <params/>
+                    <ipmi_sensor/>
+                    <authtype>0</authtype>
+                    <username/>
+                    <password/>
+                    <publickey/>
+                    <privatekey/>
+                    <port/>
+                    <description>This number describe the number of dangling images on current host</description>
+                    <inventory_link>0</inventory_link>
+                    <applications>
+                        <application>
+                            <name>Docker</name>
+                        </application>
+                    </applications>
+                    <valuemap/>
+                    <logtimefmt/>
+                    <preprocessing/>
+                    <jmx_endpoint/>
+                    <master_item/>
+                </item>
+                <item>
+                    <name>Docker dangling volumes</name>
+                    <type>0</type>
+                    <snmp_community/>
+                    <snmp_oid/>
+                    <key>docker.vstatus[Dangling]</key>
+                    <delay>600s</delay>
+                    <history>30d</history>
+                    <trends>30d</trends>
+                    <status>0</status>
+                    <value_type>3</value_type>
+                    <allowed_hosts/>
+                    <units/>
+                    <snmpv3_contextname/>
+                    <snmpv3_securityname/>
+                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
+                    <snmpv3_authprotocol>0</snmpv3_authprotocol>
+                    <snmpv3_authpassphrase/>
+                    <snmpv3_privprotocol>0</snmpv3_privprotocol>
+                    <snmpv3_privpassphrase/>
+                    <params/>
+                    <ipmi_sensor/>
+                    <authtype>0</authtype>
+                    <username/>
+                    <password/>
+                    <publickey/>
+                    <privatekey/>
+                    <port/>
+                    <description>This number describe the number of dangling volumes on current host</description>
+                    <inventory_link>0</inventory_link>
+                    <applications>
+                        <application>
+                            <name>Docker</name>
+                        </application>
+                    </applications>
+                    <valuemap/>
+                    <logtimefmt/>
+                    <preprocessing/>
+                    <jmx_endpoint/>
+                    <master_item/>
+                </item>
+                <item>
+                    <name>Docker service is running</name>
+                    <type>0</type>
+                    <snmp_community/>
+                    <snmp_oid/>
+                    <key>proc.num[dockerd]</key>
+                    <delay>60s</delay>
+                    <history>30d</history>
+                    <trends>60d</trends>
+                    <status>0</status>
+                    <value_type>3</value_type>
+                    <allowed_hosts/>
+                    <units/>
+                    <snmpv3_contextname/>
+                    <snmpv3_securityname/>
+                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
+                    <snmpv3_authprotocol>0</snmpv3_authprotocol>
+                    <snmpv3_authpassphrase/>
+                    <snmpv3_privprotocol>0</snmpv3_privprotocol>
+                    <snmpv3_privpassphrase/>
+                    <params/>
+                    <ipmi_sensor/>
+                    <authtype>0</authtype>
+                    <username/>
+                    <password/>
+                    <publickey/>
+                    <privatekey/>
+                    <port/>
+                    <description/>
+                    <inventory_link>0</inventory_link>
+                    <applications>
+                        <application>
+                            <name>Docker</name>
+                        </application>
+                    </applications>
+                    <valuemap/>
+                    <logtimefmt/>
+                    <preprocessing/>
+                    <jmx_endpoint/>
+                    <master_item/>
+                </item>
+            </items>
             <discovery_rules>
                 <discovery_rule>
                     <name>Running containers</name>
@@ -111,13 +235,97 @@ Current template is compartible only with zabbix agent module, that can be found
                             <master_item_prototype/>
                         </item_prototype>
                         <item_prototype>
+                            <name>Created time of container {#HCONTAINERID}</name>
+                            <type>0</type>
+                            <snmp_community/>
+                            <snmp_oid/>
+                            <key>docker.inspect[/{#HCONTAINERID},Created]</key>
+                            <delay>60s</delay>
+                            <history>1h</history>
+                            <trends>0</trends>
+                            <status>0</status>
+                            <value_type>4</value_type>
+                            <allowed_hosts/>
+                            <units/>
+                            <snmpv3_contextname/>
+                            <snmpv3_securityname/>
+                            <snmpv3_securitylevel>0</snmpv3_securitylevel>
+                            <snmpv3_authprotocol>0</snmpv3_authprotocol>
+                            <snmpv3_authpassphrase/>
+                            <snmpv3_privprotocol>0</snmpv3_privprotocol>
+                            <snmpv3_privpassphrase/>
+                            <params/>
+                            <ipmi_sensor/>
+                            <authtype>0</authtype>
+                            <username/>
+                            <password/>
+                            <publickey/>
+                            <privatekey/>
+                            <port/>
+                            <description/>
+                            <inventory_link>0</inventory_link>
+                            <applications>
+                                <application>
+                                    <name>Docker</name>
+                                </application>
+                            </applications>
+                            <valuemap/>
+                            <logtimefmt/>
+                            <preprocessing/>
+                            <jmx_endpoint/>
+                            <application_prototypes/>
+                            <master_item_prototype/>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>Unauthorized restart count of container {#HCONTAINERID}</name>
+                            <type>0</type>
+                            <snmp_community/>
+                            <snmp_oid/>
+                            <key>docker.inspect[/{#HCONTAINERID},RestartCount]</key>
+                            <delay>60s</delay>
+                            <history>30d</history>
+                            <trends>90d</trends>
+                            <status>0</status>
+                            <value_type>3</value_type>
+                            <allowed_hosts/>
+                            <units>count</units>
+                            <snmpv3_contextname/>
+                            <snmpv3_securityname/>
+                            <snmpv3_securitylevel>0</snmpv3_securitylevel>
+                            <snmpv3_authprotocol>0</snmpv3_authprotocol>
+                            <snmpv3_authpassphrase/>
+                            <snmpv3_privprotocol>0</snmpv3_privprotocol>
+                            <snmpv3_privpassphrase/>
+                            <params/>
+                            <ipmi_sensor/>
+                            <authtype>0</authtype>
+                            <username/>
+                            <password/>
+                            <publickey/>
+                            <privatekey/>
+                            <port/>
+                            <description/>
+                            <inventory_link>0</inventory_link>
+                            <applications>
+                                <application>
+                                    <name>Docker</name>
+                                </application>
+                            </applications>
+                            <valuemap/>
+                            <logtimefmt/>
+                            <preprocessing/>
+                            <jmx_endpoint/>
+                            <application_prototypes/>
+                            <master_item_prototype/>
+                        </item_prototype>
+                        <item_prototype>
                             <name>Launched time of container {#HCONTAINERID}</name>
                             <type>0</type>
                             <snmp_community/>
                             <snmp_oid/>
                             <key>docker.inspect[/{#HCONTAINERID},State,StartedAt]</key>
                             <delay>60s</delay>
-                            <history>1d</history>
+                            <history>1h</history>
                             <trends>0</trends>
                             <status>0</status>
                             <value_type>4</value_type>
@@ -290,6 +498,28 @@ Current template is compartible only with zabbix agent module, that can be found
                     </item_prototypes>
                     <trigger_prototypes>
                         <trigger_prototype>
+                            <expression>{Template App Docker:docker.inspect[/{#HCONTAINERID},Created].diff(0)}&gt;0</expression>
+                            <recovery_mode>0</recovery_mode>
+                            <recovery_expression/>
+                            <name>Docker container {#HCONTAINERID} has been recreated</name>
+                            <correlation_mode>0</correlation_mode>
+                            <correlation_tag/>
+                            <url/>
+                            <status>0</status>
+                            <priority>1</priority>
+                            <description/>
+                            <type>0</type>
+                            <manual_close>0</manual_close>
+                            <dependencies>
+                                <dependency>
+                                    <name>Docker service is not running</name>
+                                    <expression>{Template App Docker:proc.num[dockerd].last()}=0</expression>
+                                    <recovery_expression/>
+                                </dependency>
+                            </dependencies>
+                            <tags/>
+                        </trigger_prototype>
+                        <trigger_prototype>
                             <expression>{Template App Docker:docker.inspect[/{#HCONTAINERID},State,StartedAt].diff(0)}&gt;0</expression>
                             <recovery_mode>0</recovery_mode>
                             <recovery_expression/>
@@ -298,11 +528,22 @@ Current template is compartible only with zabbix agent module, that can be found
                             <correlation_tag/>
                             <url/>
                             <status>0</status>
-                            <priority>2</priority>
+                            <priority>1</priority>
                             <description/>
                             <type>0</type>
                             <manual_close>0</manual_close>
-                            <dependencies/>
+                            <dependencies>
+                                <dependency>
+                                    <name>Docker container {#HCONTAINERID} has been recreated</name>
+                                    <expression>{Template App Docker:docker.inspect[/{#HCONTAINERID},Created].diff(0)}&gt;0</expression>
+                                    <recovery_expression/>
+                                </dependency>
+                                <dependency>
+                                    <name>Docker service is not running</name>
+                                    <expression>{Template App Docker:proc.num[dockerd].last()}=0</expression>
+                                    <recovery_expression/>
+                                </dependency>
+                            </dependencies>
                             <tags/>
                         </trigger_prototype>
                         <trigger_prototype>
@@ -318,7 +559,13 @@ Current template is compartible only with zabbix agent module, that can be found
                             <description/>
                             <type>0</type>
                             <manual_close>0</manual_close>
-                            <dependencies/>
+                            <dependencies>
+                                <dependency>
+                                    <name>Docker service is not running</name>
+                                    <expression>{Template App Docker:proc.num[dockerd].last()}=0</expression>
+                                    <recovery_expression/>
+                                </dependency>
+                            </dependencies>
                             <tags/>
                         </trigger_prototype>
                     </trigger_prototypes>
@@ -429,6 +676,18 @@ Current template is compartible only with zabbix agent module, that can be found
                                         <key>docker.up[/{#HCONTAINERID}]</key>
                                     </item>
                                 </graph_item>
+                                <graph_item>
+                                    <sortorder>1</sortorder>
+                                    <drawtype>0</drawtype>
+                                    <color>F63100</color>
+                                    <yaxisside>0</yaxisside>
+                                    <calc_fnc>2</calc_fnc>
+                                    <type>0</type>
+                                    <item>
+                                        <host>Template App Docker</host>
+                                        <key>docker.inspect[/{#HCONTAINERID},RestartCount]</key>
+                                    </item>
+                                </graph_item>
                             </graph_items>
                         </graph_prototype>
                     </graph_prototypes>
@@ -442,6 +701,68 @@ Current template is compartible only with zabbix agent module, that can be found
             <screens/>
         </template>
     </templates>
+    <triggers>
+        <trigger>
+            <expression>{Template App Docker:docker.istatus[Dangling].last()}&lt;&gt;0</expression>
+            <recovery_mode>0</recovery_mode>
+            <recovery_expression/>
+            <name>Docker dangling images have been detected</name>
+            <correlation_mode>0</correlation_mode>
+            <correlation_tag/>
+            <url/>
+            <status>0</status>
+            <priority>1</priority>
+            <description>Please delete dangling images for release disk space on the host {HOST.NAME}</description>
+            <type>0</type>
+            <manual_close>0</manual_close>
+            <dependencies>
+                <dependency>
+                    <name>Docker service is not running</name>
+                    <expression>{Template App Docker:proc.num[dockerd].last()}=0</expression>
+                    <recovery_expression/>
+                </dependency>
+            </dependencies>
+            <tags/>
+        </trigger>
+        <trigger>
+            <expression>{Template App Docker:docker.vstatus[Dangling].last()}&lt;&gt;0</expression>
+            <recovery_mode>0</recovery_mode>
+            <recovery_expression/>
+            <name>Docker dangling volumes have been detected</name>
+            <correlation_mode>0</correlation_mode>
+            <correlation_tag/>
+            <url/>
+            <status>0</status>
+            <priority>1</priority>
+            <description>Please delete dangling volumes for release disk space on the host {HOST.NAME}</description>
+            <type>0</type>
+            <manual_close>0</manual_close>
+            <dependencies>
+                <dependency>
+                    <name>Docker service is not running</name>
+                    <expression>{Template App Docker:proc.num[dockerd].last()}=0</expression>
+                    <recovery_expression/>
+                </dependency>
+            </dependencies>
+            <tags/>
+        </trigger>
+        <trigger>
+            <expression>{Template App Docker:proc.num[dockerd].last()}=0</expression>
+            <recovery_mode>0</recovery_mode>
+            <recovery_expression/>
+            <name>Docker service is not running</name>
+            <correlation_mode>0</correlation_mode>
+            <correlation_tag/>
+            <url/>
+            <status>0</status>
+            <priority>4</priority>
+            <description/>
+            <type>0</type>
+            <manual_close>0</manual_close>
+            <dependencies/>
+            <tags/>
+        </trigger>
+    </triggers>
     <value_maps>
         <value_map>
             <name>Service state</name>
