@@ -331,14 +331,15 @@ Agent port: {HOST.PORT}''',
                 if len(http_test) > 0:
                     if http_test[0]["name"] == template["name"] and http_test[0]["steps"][0]["url"] == template["steps"][0]["url"]:
                         logger.debug("No changed were detected. Skipped updating the web scenario")
-                        continue
-                    template["httptestid"] = http_test[0]["httptestid"]
-                    del template["hostid"]
-                    self.zapi.httptest.update(template)
+                    else:
+                        template["httptestid"] = http_test[0]["httptestid"]
+                        del template["hostid"]
+                        self.zapi.httptest.update(template)
                 else:
                     self.zapi.httptest.create(template)
+
                 trigger = {
-                    "description": "Availability of %s by url"%(item["name"]),
+                    "description": "Health status of %s"%(item["name"]),
                     "expression": "{"+host_name+":web.test.fail["+item["name"]+"].last(0)} <> 0",
                     "priority": item["priority"] if "priority" in item else 1,
                     "url": item["url"]
@@ -367,7 +368,7 @@ Agent port: {HOST.PORT}''',
         return self.zapi.trigger.create(data)
 
     def update_trigger(self, data):
-        logger.debug("Updateing trigger.")
+        logger.debug("Updating trigger.")
         logger.debug(data)
         return self.zapi.trigger.update(data)
 
