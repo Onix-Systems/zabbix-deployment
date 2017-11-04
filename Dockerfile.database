@@ -1,5 +1,7 @@
 FROM mariadb:10.3
 
+LABEL maintainer="devops@onix-systems.com"
+
 ENV SCRIPTS_FOLDER=/usr/local/bin \
     PRE_INIT_SCRIPT=db_pre_init.sh \
     DATA_FOLDER=/var/lib/mysql
