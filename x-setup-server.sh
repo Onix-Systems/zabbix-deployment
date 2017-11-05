@@ -24,4 +24,10 @@ docker-compose up -d &> /dev/null
 echo "Done."
 echo "Installing and configuring host's agent."
 echo $DEFAULT_HOST_METADATA
-./x-setup-agent.sh -s ${SERVER} -l ${SUBNET_PREFIX}1 --hostname $(hostname -f) -m "Linux ${DEFAULT_HOST_SECRET}" --enable-docker-module
+./x-setup-agent.sh \
+    -s ${SERVER} \
+    -l ${SUBNET_PREFIX}1 \
+    --hostname $(hostname -f) \
+    -m "Linux ${DEFAULT_HOST_SECRET}" \
+    --enable-docker-module \
+    --enable-ssl-params
