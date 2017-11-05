@@ -26,9 +26,9 @@ Options:
     -m, --meta [string]         String to use for auto registration.
     -s, --server [zabbix.local] Set zabbix server to connect by agent. This option is required.
     --hostname [agent.local]    Set agent hostname.
-    --enable-docker-module      Download and enable docker module for agent. Is compartible with Temp
+    --enable-docker-module      Download and enable docker module for agent. Is compartible with Template App Docker.
     --enable-ssl-params         Enable custom SSL parameters:
-                                    1) ssl.getenddate[host,port] - returns timestamp of expiration the certificate
+                                    1) ssl.getenddate[host,port] - returns timestamp of expiration the certificate.
     -h, --help                  Show help.
 
 Examples:
