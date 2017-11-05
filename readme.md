@@ -1,6 +1,5 @@
 ### About
 Repository contain docker-compose project for running zabbix server on your own server
-Also there is Dockerfile that contains zabbix agent
 
 1. Zabbix server 3.4
 1. Zabbix frontend
