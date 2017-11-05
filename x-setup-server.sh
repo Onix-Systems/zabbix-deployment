@@ -30,4 +30,4 @@ echo $DEFAULT_HOST_METADATA
     --hostname $(hostname -f) \
     -m "Linux ${DEFAULT_HOST_SECRET}" \
     --enable-docker-module \
-    --enable-ssl-params
+    --with-certificate-params
