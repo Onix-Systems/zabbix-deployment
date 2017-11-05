@@ -180,7 +180,7 @@ class Configurator:
             logger.info("User %s is already disabled."%(username))
 
     def get_host_info(self, hostname="", host_id=""):
-        logger.debug("Retrieving inforation about host %s."%(hostname))
+        logger.debug("Retrieving information about host %s."%(hostname))
         rule = {"host": hostname} if hostname != "" else {"hostid": host_id}
         return self.zapi.host.get(filter=rule)
 
@@ -361,11 +361,29 @@ Agent port: {HOST.PORT}''',
         else:
             return 0
 
+    def create_item(self, data):
+        logger.debug("Creating item")
+        item = self.zapi.item.get(filter={"name": data["name"]})
+        if len(item)==0:
+            return self.zapi.item.create(data)
+        else:
+            data["itemid"] = item[0]["itemid"]
+            return self.update_item(data)
+
+    def update_item(self, data):
+        logger.debug("Updating item")
+        return self.zapi.item.update(data)
+
     def create_trigger(self, data):
         data["type"] = 0
-        logger.debug("Creating trigger.")
-        logger.debug(data)
-        return self.zapi.trigger.create(data)
+        trigger = self.zapi.trigger.get(filter={"description": data["description"]})
+        if len(trigger)==0:
+            logger.debug("Creating trigger.")
+            logger.debug(data)
+            return self.zapi.trigger.create(data)
+        else:
+            data["triggerid"] = trigger[0]["triggerid"]
+            return self.update_trigger(data)
 
     def update_trigger(self, data):
         logger.debug("Updating trigger.")
@@ -504,6 +522,54 @@ Agent port: {HOST.PORT}''',
 
         return 1
 
+    def add_ssl_certificates_checking(self, host_id, url_list):
+        distinct_list = list()
+        for el in url_list:
+            if el["url"].split("://")[0] == "https":
+                server_name = el["url"].split("/")[2]
+                if not server_name in distinct_list:
+                    distinct_list.append(server_name)
+        logger.debug("Was found next list of vhosts with https mode.")
+        logger.debug(distinct_list)
+        host_info = self.get_host_info(host_id=host_id)[0]
+        interface_id = self.zapi.hostinterface.get(filter={"hostid": host_id})[0]["interfaceid"]
+        for vhost in distinct_list:
+            logger.debug("Creating certificate check item for vhost: %s."%(vhost))
+            item = {
+                "name": "Certificate expiration timestamp of %s"%(vhost),
+                "hostid": host_id,
+                "interfaceid": interface_id,
+                "key_": "certificate.endtimestamp[%s,443]"%(vhost),
+                "delay": "1h",
+                "type": 0,
+                "value_type": 3,
+                "history": "30d",
+                "trends": "60d"
+            }
+            self.create_item(item)
+            item = {
+                "name": "Certificate expiration date of %s"%(vhost),
+                "hostid": host_id,
+                "interfaceid": interface_id,
+                "key_": "certificate.enddate[%s,443]"%(vhost),
+                "delay": "1h",
+                "type": 0,
+                "value_type": 4,
+                "history": "1d",
+                "trends": "1d"
+            }
+            self.create_item(item)
+            logger.debug("Creating/updating warning and alert trigger.")
+            for el in [{"days": 30, "severity": 1},{"days": 7, "severity":4}]:
+                trigger = {
+                     "description": "SSL ceritificate of %s will expire in %d days"%(vhost,el["days"]),
+                     "expression": "{%s:certificate.endtimestamp[%s,443].last()}-{%s:certificate.endtimestamp[%s,443].now()}<%d"%(host_info["host"],vhost,host_info["host"],vhost,el["days"] * 24 * 60),
+                     "priority": el["severity"],
+                     "url": "https://"+vhost
+                }
+                self.create_trigger(trigger)
+        return 1
+
     def main(self):
 
         if self.authentication_type != self.default_authentication_type:
@@ -526,6 +592,7 @@ Agent port: {HOST.PORT}''',
         logger.info("Enabled default notify action." if self.enable_action(self.default_report_action) else "Skipped activating the default notify action.")
         logger.info("Added/Updated auto discovery action." if self.add_auto_discovery_action(self.host_metadata) else "Skipped adding auto discovery action.")
         logger.info("Initialization checking web urls." if self.add_web_scenario(host_id=host_id, url_list=self.url_list) else "Skipped initialization of web urls.")
+        logger.info("Created SSL certificates check trigggers." if self.add_ssl_certificates_checking(host_id=host_id, url_list=self.url_list) else "Skipped adding SSL check triggers.")
         logger.info("Adding zabbix configuration templates." if self.configuration_folder != "" and self.import_configuration() else "No configuration templates folder was identified.")
 
         logger.info("Creating default user group %s."%(self.default_user_group))
