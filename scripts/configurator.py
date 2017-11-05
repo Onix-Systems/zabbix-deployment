@@ -362,9 +362,9 @@ Agent port: {HOST.PORT}''',
             return 0
 
     def create_item(self, data):
-        logger.debug("Creating item")
         item = self.zapi.item.get(filter={"name": data["name"]})
         if len(item)==0:
+            logger.debug("Creating item")
             return self.zapi.item.create(data)
         else:
             data["itemid"] = item[0]["itemid"]
