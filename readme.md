@@ -1,5 +1,5 @@
 ### About
-Repository contain docker-compose project for running zabbix server on your own server
+Repository contain docker-compose project for running zabbix server on your own server.
 
 1. Zabbix server 3.4
 1. Zabbix frontend
