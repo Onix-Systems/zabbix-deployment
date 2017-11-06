@@ -14,6 +14,7 @@ SERVER=""
 LISTEN_IP=""
 HOSTNAME=""
 ENABLE_DOCKER_MODULE=false
+WITH_CERTIFICATE_PARAMS=false
 MODULE_FOLDER=/var/lib/modules/zabbix
 MODULE_FILENAME=zabbix_module_docker.so
 
@@ -25,7 +26,10 @@ Options:
     -m, --meta [string]         String to use for auto registration.
     -s, --server [zabbix.local] Set zabbix server to connect by agent. This option is required.
     --hostname [agent.local]    Set agent hostname.
-    --enable-docker-module      Download and enable docker module for agent.
+    --enable-docker-module      Download and enable docker module for agent. Is compartible with Template App Docker.
+    --with-certificate-params   Enable custom certificate parameters:
+                                    1) certificate.enddate[host,port] - returns datetime of expiration the certificate.
+                                    2) certificate.endtimestamp[host,port] - returns datetime of expiration the certificate.
     -h, --help                  Show help.
 
 Examples:
@@ -58,6 +62,9 @@ do
                 ;;
                 --enable-docker-module)
                     ENABLE_DOCKER_MODULE=true
+                ;;
+                --with-certificate-params)
+                    WITH_CERTIFICATE_PARAMS=true
                 ;;
                 *) # unknown option
                     echo "ERROR! Unknown option. See help."
@@ -126,6 +133,13 @@ fi
 if [ "${ENABLE_DOCKER_MODULE}" == true ]; then
 cat << EOF >> ${CONFIG_FILE}
 LoadModule=${MODULE_FILENAME}
+EOF
+fi
+
+if [ "${WITH_CERTIFICATE_PARAMS}" == true ]; then
+cat << EOF >> ${CONFIG_FILE}
+UserParameter=certificate.endtimestamp[*],date --date "\$(echo | openssl s_client -showcerts -servername \$1 -connect \$1:\$2 2>/dev/null | openssl x509 -inform pem -noout -enddate | cut -d= -f2)" +%s
+UserParameter=certificate.enddate[*],date --date "\$(echo | openssl s_client -showcerts -servername \$1 -connect \$1:\$2 2>/dev/null | openssl x509 -inform pem -noout -enddate | cut -d= -f2)"
 EOF
 fi
 
