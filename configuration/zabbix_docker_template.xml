@@ -555,7 +555,7 @@ Current template is compartible only with zabbix agent module, that can be found
                             <correlation_tag/>
                             <url/>
                             <status>0</status>
-                            <priority>2</priority>
+                            <priority>1</priority>
                             <description/>
                             <type>0</type>
                             <manual_close>0</manual_close>
