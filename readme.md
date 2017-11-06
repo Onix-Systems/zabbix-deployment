@@ -1,10 +1,9 @@
 ### About
-Repository contain docker-compose project for running zabbix server on your own server
-Also there is Dockerfile that contains zabbix agent
+Repository contain docker-compose project for running zabbix server on your own server.
 
 1. Zabbix server 3.4
 1. Zabbix frontend
-1. Zabbix agent (is installed on host, not run inside the docker container)
+1. Zabbix agent (will be installed on host, not run inside the docker container)
 1. MariaDB 10.3
 1. Exim4 SMTP service
 
@@ -24,9 +23,10 @@ If default options are not enough, then please use `.env.example` to create own 
 ### Run Zabbix server
 
 ```shell
-$ cd ./scripts
-$ ./setup-server.sh
+$ ./x-setup-server.sh
 ```
+After server will be launched, this script will call `./x-setup-agent.sh` to install
+Zabbix agent on host machine, where Zabbix server works inside the docker environment.
 
 #### Run and configured only server components
 ```shell
@@ -38,10 +38,9 @@ $ docker-compose up -d
 For server it is not necessary to run below described command, `./setup-server.sh` will launch it by self.
 
 ```shell
-$ cd ./scripts
-$ ./setup-agent.sh --help
+$ ./x-setup-agent.sh --help
 ...
-$ ./setup-agent.sh -m "Linux ${DEFAULT_HOST_SECRET}" -s zabbix.local --hostname $(hostname -f)
+$ ./x-setup-agent.sh -m "Linux ${DEFAULT_HOST_SECRET}" -s zabbix.local --hostname $(hostname -f)
 ```
 
 Frontend url is: http://localhost if you launch project on your local machine.

@@ -1,5 +1,7 @@
 FROM ubuntu:xenial
 
+LABEL maintainer="devops@onix-systems.com"
+
 RUN apt-get update && \
     apt-get install -y \
       libcurl4-openssl-dev \
