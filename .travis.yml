@@ -1,4 +1,6 @@
 ---
+  sudo: enabled
+
   language: python
 
   python:
