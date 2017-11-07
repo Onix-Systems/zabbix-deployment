@@ -11,6 +11,7 @@
 
   script:
     - docker-compose stop -t 0 && sudo rm -f ./data/
+    - cp .env.example .env
     - sudo ./x-setup-server.sh
     - docker images
     - docker ps -a
