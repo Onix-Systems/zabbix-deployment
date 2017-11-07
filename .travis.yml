@@ -18,5 +18,6 @@
     - sudo ./x-setup-server.sh
     - docker images
     - docker ps -a
-    - CONFIGURATOR_OPTIONS=--skip-configure docker-compose up -d
-    - CONFIGURATOR_OPTIONS=--debug docker-compose up --exit-code-from configurator --abort-on-container-exit configurator
+    - CONFIGURATOR_OPTIONS=--debug docker-compose up -d
+    - docker-compose logs -f configurator
+    # - CONFIGURATOR_OPTIONS=--debug docker-compose up --exit-code-from configurator --abort-on-container-exit configurator
