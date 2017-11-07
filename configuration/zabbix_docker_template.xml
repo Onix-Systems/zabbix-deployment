@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>3.4</version>
-    <date>2017-11-06T22:05:33Z</date>
+    <date>2017-11-07T09:57:21Z</date>
     <groups>
         <group>
             <name>Templates</name>
@@ -498,7 +498,7 @@ Current template is compartible only with zabbix agent module, that can be found
                     </item_prototypes>
                     <trigger_prototypes>
                         <trigger_prototype>
-                            <expression>{Template App Docker:docker.inspect[/{#HCONTAINERID},Created].diff(0)}&gt;0</expression>
+                            <expression>{Template App Docker:docker.inspect[/{#HCONTAINERID},Created].diff()}&gt;0</expression>
                             <recovery_mode>0</recovery_mode>
                             <recovery_expression/>
                             <name>Docker container {#HCONTAINERID} has been recreated</name>
@@ -520,8 +520,8 @@ Current template is compartible only with zabbix agent module, that can be found
                             <tags/>
                         </trigger_prototype>
                         <trigger_prototype>
-                            <expression>{Template App Docker:docker.inspect[/{#HCONTAINERID},State,StartedAt].diff(0)}&gt;0 and&#13;
-{Template App Docker:docker.inspect[/{#HCONTAINERID},Created].last(#1)}={Template App Docker:docker.inspect[/{#HCONTAINERID},Created].last(#2)}</expression>
+                            <expression>{Template App Docker:docker.inspect[/{#HCONTAINERID},State,StartedAt].diff()}&gt;0 and&#13;
+{Template App Docker:docker.inspect[/{#HCONTAINERID},Created].diff()} = 0</expression>
                             <recovery_mode>0</recovery_mode>
                             <recovery_expression/>
                             <name>Docker container {#HCONTAINERID} has been restarted</name>
@@ -536,7 +536,7 @@ Current template is compartible only with zabbix agent module, that can be found
                             <dependencies>
                                 <dependency>
                                     <name>Docker container {#HCONTAINERID} has been recreated</name>
-                                    <expression>{Template App Docker:docker.inspect[/{#HCONTAINERID},Created].diff(0)}&gt;0</expression>
+                                    <expression>{Template App Docker:docker.inspect[/{#HCONTAINERID},Created].diff()}&gt;0</expression>
                                     <recovery_expression/>
                                 </dependency>
                                 <dependency>
