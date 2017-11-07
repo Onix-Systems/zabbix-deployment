@@ -10,7 +10,6 @@ from StringIO import StringIO
 
 parser = argparse.ArgumentParser(prog="./configurator.py", description="Zabbix configurator")
 parser.add_argument("--debug", action="store_true", help="Enable debug mode")
-parser.add_argument("--skip-configure", action="store_true", help="Skip configuring and immediately exit with success exit code.")
 args = parser.parse_args()
 options = vars(args)
 
@@ -604,14 +603,10 @@ Agent port: {HOST.PORT}''',
         return self.logout()
 
 if __name__ == "__main__":
-    if not options["skip_configure"]:
-        app = Configurator()
-        try:
-            exit(app.main())
-        except KeyboardInterrupt:
-            error("Interrupted by user.")
-        except Exception:
-            raise
-    else:
-        logger.debug("Configurator have skipped configure zabbix service.")
-        exit(0)
+    app = Configurator()
+    try:
+        exit(app.main())
+    except KeyboardInterrupt:
+        error("Interrupted by user.")
+    except Exception:
+        raise
