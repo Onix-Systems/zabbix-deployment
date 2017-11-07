@@ -16,4 +16,6 @@
 
   script:
     - sudo ./x-setup-server.sh
-    - docker-compose up configurator
+    - docker images
+    - docker ps -a
+    - docker-compose up --exit-code-from configurator --abort-on-container-exit configurator
