@@ -98,14 +98,16 @@ services:
       - ./scripts/configurator.py:/configurator.py
       - ./configuration:/configuration
     links:
-      - frontend
       - db
+      - frontend
+      - server
     extra_hosts:
       - "agent:${SUBNET_PREFIX:-172.15.0.}1"
     networks:
       zabbix_net:
         ipv4_address: ${SUBNET_PREFIX:-172.15.0.}7
     environment:
+      - ZBX_SERVER_HOST=server
       - ZBX_SERVER_URL=http://frontend
       - ZBX_ADMIN_PASSWORD=${ZBX_ADMIN_PASSWORD:-zabbix}
       - ZBX_DISABLE_GUEST=${ZBX_DISABLE_GUEST:-true}

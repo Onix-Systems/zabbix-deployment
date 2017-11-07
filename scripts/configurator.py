@@ -24,18 +24,6 @@ def check_email(email_address):
     else:
         error("Email address %s is incorrect."%email_address)
 
-def check_http_code(url, response_code=200):
-    buffer = StringIO()
-    c = pycurl.Curl()
-    c.setopt(c.URL, url)
-    c.setopt(c.WRITEDATA, buffer)
-    c.perform()
-    if c.getinfo(c.RESPONSE_CODE) == response_code:
-        c.close()
-        return 1
-    c.close()
-    return 0
-
 def error(msg=""):
     logger.error(msg)
     exit(1)
@@ -43,6 +31,7 @@ def error(msg=""):
 class Configurator:
     def __init__(self):
         self.url = os.environ["ZBX_SERVER_URL"]
+        self.server_host = os.environ["ZBX_SERVER_HOST"]
         self.default_admin_username = "admin"
         self.default_admin_password = "zabbix"
         self.admin_password = os.environ["ZBX_ADMIN_PASSWORD"] if "ZBX_ADMIN_PASSWORD" in os.environ else self.default_admin_password
@@ -53,6 +42,7 @@ class Configurator:
         self.agent_dns_name = os.environ["ZBX_AGENT_HOSTNAME"]
         self.agent_ip_address = socket.gethostbyname(self.agent_dns_name)
         self.default_agent_port = 10050
+        self.default_server_port = 10051
         # If server is unreachable than try to reconnect self.attempts_max_count times after wait timeout
         self.connect_attempt_wait_timeout = 5
         self.connect_attempts_max_count = 10
@@ -77,10 +67,12 @@ class Configurator:
         self.zapi = ZabbixAPI(self.url)
         logger.info("Waiting while Zabbix server will be reachable.")
         for attempt in range(0,self.connect_attempts_max_count):
-            try:
-                if check_http_code(self.url):
-                    break;
-            except:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            result = sock.connect_ex((self.server_host,self.default_server_port))
+            if result == 0:
+                logger.debug("Server is reachable.")
+                break
+            else:
                 logger.debug("Waiting for while Zabbix will be reachable %d/%d with %d sec interval."%(attempt+1, self.connect_attempts_max_count, self.connect_attempt_wait_timeout))
                 time.sleep(self.connect_attempt_wait_timeout)
         logger.info("Connecting to Zabbix database.")
