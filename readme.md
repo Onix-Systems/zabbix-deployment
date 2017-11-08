@@ -35,7 +35,7 @@ Zabbix agent on host machine, where Zabbix server works inside the docker enviro
 $ docker-compose up -d
 ```
 Zabbix provisioned service is **configurator**, after succesfully configuring the server, configurator has to return exit code 0.
-To be that it is precisely so, execute such command and look at state column:
+To be sure that it is precisely so, execute such command and look at state column:
 ```shell
 $ docker-compose ps configurator
         Name                    Command            State    Ports
