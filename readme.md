@@ -34,6 +34,38 @@ Zabbix agent on host machine, where Zabbix server works inside the docker enviro
 ```shell
 $ docker-compose up -d
 ```
+Zabbix provisioned service is *configurator*, after succesfully configuring the server, configurator has to return exit code 0.
+To be that it is precisely so, execute such command and look at state column:
+```shell
+$ docker-compose ps configurator
+        Name                    Command            State    Ports
+-----------------------------------------------------------------
+default_configurator_1   /configurator.py --debug   Exit 0
+```
+
+If something wrong, it is possible to debug provision by attaching to configurator service while it is running or look at its logs.
+```shell
+$ docker-compose logs configurator
+...
+$ docker-compose up configurator
+default_db_1 is up-to-date
+default_smtp_1 is up-to-date
+default_server_1 is up-to-date
+default_frontend_1 is up-to-date
+Starting default_configurator_1 ...
+Starting default_configurator_1 ... done
+Attaching to default_configurator_1
+configurator_1  | DEBUG:Configurator:SMTP_HELO value is: zabbix.
+configurator_1  | INFO:Configurator:Waiting while Zabbix server will be reachable.
+configurator_1  | DEBUG:Configurator:Server is reachable.
+configurator_1  | INFO:Configurator:Connecting to Zabbix database.
+...
+configurator_1  | DEBUG:Configurator:Comparasing desired config with current.
+configurator_1  | DEBUG:Configurator:Logout from Zabbix server.
+zabbix_configurator_1 exited with code 0
+```
+
+For enable debug mode, use configurator option `--debug`. It is possible to set this option by using configurator variable `CONFIGURATOR_OPTIONS=--debug` in `.env` environment config file.
 
 ### Install and configured external agent
 
