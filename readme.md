@@ -62,7 +62,7 @@ configurator_1  | INFO:Configurator:Connecting to Zabbix database.
 ...
 configurator_1  | DEBUG:Configurator:Comparasing desired config with current.
 configurator_1  | DEBUG:Configurator:Logout from Zabbix server.
-zabbix_configurator_1 exited with code 0
+default_configurator_1 exited with code 0
 ```
 
 For enable debug mode, use configurator option `--debug`. It is possible to set this option by using configurator variable `CONFIGURATOR_OPTIONS=--debug` in `.env` environment config file.
