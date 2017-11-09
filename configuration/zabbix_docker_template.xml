@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>3.4</version>
-    <date>2017-11-07T09:57:21Z</date>
+    <date>2017-11-09T07:06:38Z</date>
     <groups>
         <group>
             <name>Templates</name>
@@ -32,7 +32,7 @@ Current template is compartible only with zabbix agent module, that can be found
                     <snmp_community/>
                     <snmp_oid/>
                     <key>docker.istatus[Dangling]</key>
-                    <delay>600s</delay>
+                    <delay>600</delay>
                     <history>30d</history>
                     <trends>30d</trends>
                     <status>0</status>
@@ -73,7 +73,7 @@ Current template is compartible only with zabbix agent module, that can be found
                     <snmp_community/>
                     <snmp_oid/>
                     <key>docker.vstatus[Dangling]</key>
-                    <delay>600s</delay>
+                    <delay>600</delay>
                     <history>30d</history>
                     <trends>30d</trends>
                     <status>0</status>
@@ -114,7 +114,7 @@ Current template is compartible only with zabbix agent module, that can be found
                     <snmp_community/>
                     <snmp_oid/>
                     <key>proc.num[dockerd]</key>
-                    <delay>60s</delay>
+                    <delay>60</delay>
                     <history>30d</history>
                     <trends>60d</trends>
                     <status>0</status>
@@ -240,7 +240,7 @@ Current template is compartible only with zabbix agent module, that can be found
                             <snmp_community/>
                             <snmp_oid/>
                             <key>docker.inspect[/{#HCONTAINERID},Created]</key>
-                            <delay>60s</delay>
+                            <delay>60</delay>
                             <history>1h</history>
                             <trends>0</trends>
                             <status>0</status>
@@ -282,7 +282,7 @@ Current template is compartible only with zabbix agent module, that can be found
                             <snmp_community/>
                             <snmp_oid/>
                             <key>docker.inspect[/{#HCONTAINERID},RestartCount]</key>
-                            <delay>60s</delay>
+                            <delay>60</delay>
                             <history>30d</history>
                             <trends>90d</trends>
                             <status>0</status>
@@ -324,7 +324,7 @@ Current template is compartible only with zabbix agent module, that can be found
                             <snmp_community/>
                             <snmp_oid/>
                             <key>docker.inspect[/{#HCONTAINERID},State,StartedAt]</key>
-                            <delay>60s</delay>
+                            <delay>60</delay>
                             <history>1h</history>
                             <trends>0</trends>
                             <status>0</status>
@@ -521,7 +521,7 @@ Current template is compartible only with zabbix agent module, that can be found
                         </trigger_prototype>
                         <trigger_prototype>
                             <expression>{Template App Docker:docker.inspect[/{#HCONTAINERID},State,StartedAt].diff()}&gt;0 and&#13;
-{Template App Docker:docker.inspect[/{#HCONTAINERID},Created].diff()} = 0</expression>
+{Template App Docker:docker.inspect[/{#HCONTAINERID},Created].diff(120)} = 0</expression>
                             <recovery_mode>0</recovery_mode>
                             <recovery_expression/>
                             <name>Docker container {#HCONTAINERID} has been restarted</name>
