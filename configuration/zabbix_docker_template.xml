@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>3.4</version>
-    <date>2017-11-09T07:06:38Z</date>
+    <date>2017-11-15T10:22:03Z</date>
     <groups>
         <group>
             <name>Templates</name>
@@ -157,7 +157,7 @@ Current template is compartible only with zabbix agent module, that can be found
                     <snmp_community/>
                     <snmp_oid/>
                     <key>docker.discovery</key>
-                    <delay>600</delay>
+                    <delay>3540</delay>
                     <status>0</status>
                     <allowed_hosts/>
                     <snmpv3_contextname/>
@@ -506,7 +506,7 @@ Current template is compartible only with zabbix agent module, that can be found
                             <correlation_tag/>
                             <url/>
                             <status>0</status>
-                            <priority>1</priority>
+                            <priority>2</priority>
                             <description/>
                             <type>0</type>
                             <manual_close>0</manual_close>
@@ -529,7 +529,7 @@ Current template is compartible only with zabbix agent module, that can be found
                             <correlation_tag/>
                             <url/>
                             <status>0</status>
-                            <priority>1</priority>
+                            <priority>2</priority>
                             <description/>
                             <type>0</type>
                             <manual_close>0</manual_close>
@@ -556,7 +556,7 @@ Current template is compartible only with zabbix agent module, that can be found
                             <correlation_tag/>
                             <url/>
                             <status>0</status>
-                            <priority>1</priority>
+                            <priority>2</priority>
                             <description/>
                             <type>0</type>
                             <manual_close>0</manual_close>
