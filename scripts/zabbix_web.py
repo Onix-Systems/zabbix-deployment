@@ -9,7 +9,7 @@ parser = argparse.ArgumentParser(prog="./%s"%(os.path.basename(sys.argv[0])), de
 parser.add_argument(CMD_DISCOVERY, help="URL discovery command")
 parser.add_argument("--debug", action="store_true", help="Enable debug mode")
 parser.add_argument("--config", default="url_list.json", help="JSON list of web urls")
-parser.add_argument("--protocol", default=ALL, choices=[ALL,"http","https"], help="Limit url discovery mode by url protocol")
+parser.add_argument("--protocol", default=ALL, choices=[str(ALL),"http","https"], help="Limit url discovery mode by url protocol")
 parser.add_argument("--priority", default=ALL, type=int, help="Limit url discovery mode by url checking priority")
 
 args = parser.parse_args()
@@ -28,7 +28,7 @@ class Web:
         self.debug = options["debug"]
         self.protocol = options["protocol"]
         self.priority = options["priority"]
-        self.url_list = self.read_config()
+        self.url_list = self.read_config()["web"]
         if CMD_DISCOVERY in options:
             self.command = CMD_DISCOVERY
 
@@ -39,6 +39,8 @@ class Web:
 
     def discovery(self, protocol = ALL, priority = ALL):
         logger.debug("Discoverying of url list.")
+        logger.debug("Protocol: %s"%(str(protocol)))
+        logger.debug("Priority: %d"%(priority))
         result = []
         for item in self.url_list:
             if protocol != ALL and item["url"].split(":")[0] != protocol:

@@ -167,6 +167,13 @@ else
     echo "Configuration file is alredy exists. Skipped."
 fi
 
+printf "Copying examples. "
+for EXAMPLE in ${CUSTOM_CONFIG}; do
+    SOURCE="./examples/$(basename ${EXAMPLE}).example"
+    cp -f ${SOURCE} ${EXAMPLE}.example
+done
+echo "Done"
+
 printf "Checking zabbix agent service is enabled. "
 update-rc.d zabbix-agent enable
 echo "Done"

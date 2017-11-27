@@ -17,4 +17,7 @@
     - docker ps -a
     - CONFIGURATOR_OPTIONS=--debug docker-compose up -d
     - docker-compose logs -f configurator
+    - docker-compose exec server zabbix_get -s agent -k docker.discovery
+    - docker-compose exec server zabbix_get -s agent -k web.discovery[http,2]
+    - docker-compose exec server zabbix_get -s agent -k web.discovery[https,3]
     - exit $(docker inspect -f {{.State.ExitCode}} $(docker-compose ps -q configurator))

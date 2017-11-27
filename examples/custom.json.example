@@ -1,0 +1,14 @@
+{
+  "web": [
+    {
+      "name": "site.local (frontend)",
+      "url": "http://site.local",
+      "priority": 2
+    },
+    {
+      "name": "github.com",
+      "url": "https://github.com",
+      "priority": 3
+    }
+  ]
+}
