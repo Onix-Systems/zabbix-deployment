@@ -16,7 +16,9 @@ HOSTNAME=""
 ENABLE_DOCKER_MODULE=false
 ENABLE_WEB_MODULE=false
 CONFIG_FOLDER=/etc/zabbix
+CUSTOM_CONFIG=${CONFIG_FOLDER}/custom.json
 MODULE_FOLDER=/var/lib/modules/zabbix
+SCRIPTS_FOLDER=/usr/local/bin
 MODULE_FILENAME=zabbix_module_docker.so
 WEB_DISCOVERY_CONFIG=${CONFIG_FOLDER}/web_list.json
 
@@ -139,11 +141,16 @@ EOF
 fi
 
 if [ "${ENABLE_WEB_MODULE}" == true ]; then
+
+cp -f ./scripts/zabbix_web.py ${SCRIPTS_FOLDER}/zabbix_web.py
+chmod +x ${SCRIPTS_FOLDER}/zabbix_web.py
+
 cat << EOF >> ${CONFIG_FILE}
 UserParameter=certificate.endtimestamp[*],date --date "\$(echo | openssl s_client -showcerts -servername \$1 -connect \$1:\$2 2>/dev/null | openssl x509 -inform pem -noout -enddate | cut -d= -f2)" +%s
 UserParameter=certificate.enddate[*],date --date "\$(echo | openssl s_client -showcerts -servername \$1 -connect \$1:\$2 2>/dev/null | openssl x509 -inform pem -noout -enddate | cut -d= -f2)"
-UserParameter=web.discovery,cat ${WEB_DISCOVERY_CONFIG} 2> /dev/null || echo '{"data":[]}'
+UserParameter=web.discovery[*],zabbix_web.py discovery --config ${CUSTOM_CONFIG} --protocol \$1 --priority \$2
 EOF
+
 fi
 
 echo "Done."
@@ -151,6 +158,13 @@ echo "Done."
 else
   echo "Failed."
   exit 1
+fi
+
+printf "Init custom configuration file for agent. "
+if [ ! -e "${CUSTOM_CONFIG}" ]; then
+    echo "{}" > ${CUSTOM_CONFIG}
+else
+    echo "Configuration file is alredy exists. Skipped."
 fi
 
 printf "Checking zabbix agent service is enabled. "

@@ -1,11 +1,11 @@
 #!/usr/bin/python
 
-import argparse, json, logging
+import argparse, json, logging, os, sys
 
 CMD_DISCOVERY = "discovery"
 ALL = -1
 
-parser = argparse.ArgumentParser(prog="./web.py", description="Web extension")
+parser = argparse.ArgumentParser(prog="./%s"%(os.path.basename(sys.argv[0])), description="External script for Zabbix agent")
 parser.add_argument(CMD_DISCOVERY, help="URL discovery command")
 parser.add_argument("--debug", action="store_true", help="Enable debug mode")
 parser.add_argument("--config", default="url_list.json", help="JSON list of web urls")
