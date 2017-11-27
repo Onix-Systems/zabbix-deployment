@@ -555,7 +555,7 @@ Agent port: {HOST.PORT}''',
             for el in [{"days": 30, "severity": 1},{"days": 7, "severity":4}]:
                 trigger = {
                      "description": "SSL ceritificate of %s will expire in %d days"%(vhost,el["days"]),
-                     "expression": "{%s:certificate.endtimestamp[%s,443].last()}-{%s:certificate.endtimestamp[%s,443].now()}<%d"%(host_info["host"],vhost,host_info["host"],vhost,el["days"] * 24 * 60),
+                     "expression": "{%s:certificate.endtimestamp[%s,443].last()}-{%s:certificate.endtimestamp[%s,443].now()}<%d"%(host_info["host"],vhost,host_info["host"],vhost,el["days"] * 24 * 3600),
                      "priority": el["severity"],
                      "url": "https://"+vhost
                 }
