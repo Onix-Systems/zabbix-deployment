@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import argparse, json, logging, os, sys
+from urlparse import urlparse
 
 CMD_DISCOVERY = "discovery"
 ALL = -1
@@ -43,15 +44,17 @@ class Web:
         logger.debug("Priority: %d"%(priority))
         result = []
         for item in self.url_list:
-            if protocol != ALL and item["url"].split(":")[0] != protocol:
+            url = urlparse(item["url"])
+            if protocol != str(ALL) and url.scheme != protocol:
                 continue
             if priority != ALL and int(item["priority"]) != priority:
                 continue
             result.append({
                 "{#DESCRIPTION}": item["name"],
-                "{#URL}": item["url"]
+                "{#URL}": item["url"],
+                "{#HOSTNAME}": url.netloc.split(":")[0]
             })
-        return {"data": result}
+        return json.dumps({"data": result})
 
     def main(self):
         logger.debug("Reading url list from config file.")
