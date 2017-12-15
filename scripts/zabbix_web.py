@@ -53,7 +53,7 @@ class Web:
                 continue
             if priority != ALL and int(item["priority"]) != priority:
                 continue
-            # if self.unique and url.scheme + "://" + url.netloc in
+            # TODO Skip adding element, if such already exists in list
             result.append({
                 "{#DESCRIPTION}": item["name"],
                 "{#URL}": item["url"] if not self.unique else url.scheme + "://" + url.netloc,
