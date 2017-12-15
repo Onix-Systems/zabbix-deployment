@@ -2,7 +2,12 @@
   "web": [
     {
       "name": "site.local (frontend)",
-      "url": "http://site.local",
+      "url": "http://site.local/frontend",
+      "priority": 2
+    },
+    {
+      "name": "site.local (backend)",
+      "url": "http://site.local/api/health",
       "priority": 2
     },
     {
