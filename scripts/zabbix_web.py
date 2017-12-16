@@ -13,7 +13,7 @@ parser.add_argument("--debug", action="store_true", help="Enable debug mode")
 parser.add_argument("--config", default="url_list.json", help="JSON list of web urls")
 parser.add_argument("--protocol", default=ALL, choices=[str(ALL),"http","https"], help="Limit url discovery mode by url protocol")
 parser.add_argument("--priority", default=ALL, type=int, help="Limit url discovery mode by url checking priority")
-parser.add_argument("--unique", action="store_true", help="Make distinct selection from web part of config (only disimilar server name)")
+parser.add_argument("--unique", action="store_true", help="Make distinct selection server names")
 
 args = parser.parse_args()
 options = vars(args)
@@ -38,9 +38,12 @@ class Web:
             self.command = CMD_DISCOVERY
 
     def read_config(self):
-        with open(self.config_file,"r") as config_file:
-            return json.load(config_file)
-        return 0
+        if os.path.isfile(self.config_file):
+            with open(self.config_file,"r") as config_file:
+                return json.load(config_file)
+        else:
+            logger.error("Config file %s can not be found!"%(self.config_file))
+            exit(1)
 
     def discovery(self, protocol = ALL, priority = ALL):
         logger.debug("Discoverying of url list.")
@@ -53,10 +56,14 @@ class Web:
                 continue
             if priority != ALL and int(item["priority"]) != priority:
                 continue
-            # TODO Skip adding element, if such already exists in list
+            check_url = item["url"] if not self.unique else url.scheme + "://" + url.netloc
+            logger.debug(check_url)
+            if self.unique and len(filter(lambda url_list: url_list["{#URL}"] == url.scheme + "://" + url.netloc, result))>0:
+                logger.debug("Already exists. Skipping.")
+                continue
             result.append({
                 "{#DESCRIPTION}": item["name"],
-                "{#URL}": item["url"] if not self.unique else url.scheme + "://" + url.netloc,
+                "{#URL}": check_url,
                 "{#HOSTNAME}": url.netloc.split(":")[0]
             })
         return json.dumps({"data": result})
