@@ -11,9 +11,9 @@ parser = argparse.ArgumentParser(prog="./%s"%(os.path.basename(sys.argv[0])), de
 parser.add_argument(CMD_DISCOVERY, help="URL discovery command")
 parser.add_argument("--debug", action="store_true", help="Enable debug mode")
 parser.add_argument("--config", default="url_list.json", help="JSON list of web urls")
-parser.add_argument("--protocol", default=ALL, choices=[str(ALL),"http","https"], help="Limit url discovery mode by url protocol")
+parser.add_argument("--protocol", default=str(ALL), choices=[str(ALL),"http","https"], help="Limit url discovery mode by url protocol")
 parser.add_argument("--priority", default=ALL, type=int, help="Limit url discovery mode by url checking priority")
-parser.add_argument("--unique", action="store_true", help="Make distinct selection server names")
+parser.add_argument("--unique", action="store_true", help="Make distinct selection of server names")
 
 args = parser.parse_args()
 options = vars(args)
