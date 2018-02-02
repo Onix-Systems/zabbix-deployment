@@ -95,8 +95,9 @@ services:
       context: ./
     command: /configurator.py ${CONFIGURATOR_OPTIONS:- }
     volumes:
-      - ./scripts/configurator.py:/configurator.py
-      - ./configuration:/configuration
+      - ./scripts/configurator.py:/configurator.py:ro
+      - ./configuration:/configuration:ro
+      - /etc/zabbix:/etc/zabbix
     links:
       - db
       - frontend
@@ -124,6 +125,8 @@ services:
       - ZBX_CONFIG=${ZBX_CONFIG:- }
       - ZBX_ADMIN_USERS=${ZBX_ADMIN_USERS:- }
       - CONFIGURATION_FOLDER=/configuration
+      - ZABBIX_CONFIG_FOLDER=/etc/zabbix
+      - ZABBIX_CUSTOM_CONFIG=custom.json
 networks:
   zabbix_net:
     driver: bridge

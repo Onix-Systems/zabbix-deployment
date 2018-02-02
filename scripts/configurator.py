@@ -58,6 +58,11 @@ class Configurator:
         self.default_user_group = "Operation managers"
         self.default_report_action = "Report problems to "+self.default_admin_group
         self.configuration_folder = os.environ["CONFIGURATION_FOLDER"] if "CONFIGURATION_FOLDER" in os.environ else ""
+        self.zabbix_config_folder = os.environ["ZABBIX_CONFIG_FOLDER"] if "ZABBIX_CONFIG_FOLDER" in os.environ else "/etc/zabbix"
+        # This custom config for zabbix agent will be used for auto discovery purposes, for automatic cleaning data, if it is required
+        # Custom config structure: examples/custom.json.example
+        self.zabbix_custom_config = self.zabbix_config_folder + "/" + os.environ["ZABBIX_CUSTOM_CONFIG"] if "ZABBIX_CUSTOM_CONFIG" in os.environ else "custom.json"
+        self.custom_config_json = dict()
         # Auto registration
         self.host_metadata = "Linux "+os.environ["DEFAULT_HOST_SECRET"] if "DEFAULT_HOST_SECRET" in os.environ and os.environ["DEFAULT_HOST_SECRET"].strip() != "" else ""
         # Web scenario list
@@ -301,11 +306,14 @@ Agent port: {HOST.PORT}''',
 
     def add_web_scenario(self, host_id, url_list):
         logger.debug("Processing adding urls for monitoring.")
+        self.custom_config_json["web"] = list()
         if len(url_list)>0:
             host_name = self.get_host_info(host_id=host_id)[0]["name"]
             for item in url_list:
                 logger.debug(item)
+                priority = item["priority"] if "priority" in item else 1
                 http_test = self.zapi.httptest.get(filter={"name": item["name"]}, hostids=host_id, selectSteps="extend")
+                self.custom_config_json["web"].append({"name": item["name"], "url": item["url"], "priority": priority})
                 template = {
                     "hostid": host_id,
                     "name": item["name"],
@@ -333,7 +341,7 @@ Agent port: {HOST.PORT}''',
                 trigger = {
                     "description": "Health status of %s"%(item["name"]),
                     "expression": "{"+host_name+":web.test.fail["+item["name"]+"].last(0)} <> 0",
-                    "priority": item["priority"] if "priority" in item else 1,
+                    "priority": priority,
                     "url": item["url"]
                 }
 
@@ -562,6 +570,20 @@ Agent port: {HOST.PORT}''',
                 self.create_trigger(trigger)
         return 1
 
+    def save_json_config(self, source_json_object = dict(), target_file = ""):
+        logger.debug("Saving json object into %s"%target_file)
+        if (len(source_json_object) == 0):
+            logger.debug("No elements were found in json object.")
+            return 0
+        logger.debug(source_json_object)
+        try:
+            with open(target_file, "w") as target:
+                json.dump(source_json_object, target, indent=4, sort_keys=True)
+                logger.debug("Custom config file was created.")
+        except:
+            logger.error("JSON object can not be saved into file.")
+        return 1
+
     def main(self):
 
         if self.authentication_type != self.default_authentication_type:
@@ -599,6 +621,8 @@ Agent port: {HOST.PORT}''',
         if self.authentication_type != self.default_authentication_type:
             logger.debug("Returned authentication_type to initial state.")
             self.update_configuration(config={"authentication_type": self.authentication_type})
+        # This step must be the last, when custom_config_json is already prepared for saving
+        logger.info("Creating custom config." if self.save_json_config(self.custom_config_json, self.zabbix_custom_config) else "Skipped. Nothing to be saved.")
 
         return self.logout()
 
