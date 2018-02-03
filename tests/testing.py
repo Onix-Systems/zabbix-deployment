@@ -33,6 +33,7 @@ try:
     try:
         inputElement = driver.find_elements_by_class_name("top-nav-signout")
         inputElement[0].click()
+        assert "{:s} Zabbix".format(title_prefix) == driver.title
         print "SUCCESS."
     except:
         print "FAILED."
