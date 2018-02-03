@@ -38,6 +38,5 @@ try:
         print "FAILED."
 except:
     print "FAILED ({:s}).".format(driver.title)
-    print driver
 
 driver.quit()
