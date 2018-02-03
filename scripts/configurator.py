@@ -58,10 +58,10 @@ class Configurator:
         self.default_user_group = "Operation managers"
         self.default_report_action = "Report problems to "+self.default_admin_group
         self.configuration_folder = os.environ["CONFIGURATION_FOLDER"] if "CONFIGURATION_FOLDER" in os.environ else ""
-        self.zabbix_config_folder = os.environ["ZABBIX_CONFIG_FOLDER"] if "ZABBIX_CONFIG_FOLDER" in os.environ else "/etc/zabbix"
+        self.zabbix_config_folder = os.environ["ZBX_CONFIG_FOLDER"] if "ZBX_CONFIG_FOLDER" in os.environ else "/etc/zabbix"
         # This custom config for zabbix agent will be used for auto discovery purposes, for automatic cleaning data, if it is required
         # Custom config structure: examples/custom.json.example
-        self.zabbix_custom_config = self.zabbix_config_folder + "/" + os.environ["ZABBIX_CUSTOM_CONFIG"] if "ZABBIX_CUSTOM_CONFIG" in os.environ else "custom.json"
+        self.zabbix_custom_config = self.zabbix_config_folder + "/" + os.environ["ZBX_CUSTOM_CONFIG"] if "ZBX_CUSTOM_CONFIG" in os.environ else "custom.json"
         self.custom_config_json = dict()
         # Auto registration
         self.host_metadata = "Linux "+os.environ["DEFAULT_HOST_SECRET"] if "DEFAULT_HOST_SECRET" in os.environ and os.environ["DEFAULT_HOST_SECRET"].strip() != "" else ""
@@ -93,6 +93,7 @@ class Configurator:
         self.authentication_type = self.get_configuration()["authentication_type"]
         self.configuration = json.loads(os.environ["ZBX_CONFIG"]) if "ZBX_CONFIG" in os.environ and os.environ["ZBX_CONFIG"].strip() != "" else []
         self.admin_users = json.loads(os.environ["ZBX_ADMIN_USERS"]) if "ZBX_ADMIN_USERS" in os.environ and os.environ["ZBX_ADMIN_USERS"].strip() != "" else []
+        self.additional_templates = [x.strip() for x in os.environ["ZBX_ADDITIONAL_TEMPLATES"].split(",")] if "ZBX_ADDITIONAL_TEMPLATES" in os.environ else []
 
     def login(self):
         logger.debug("Login into Zabbix server (%s)."%(self.url))
@@ -179,7 +180,7 @@ class Configurator:
     def get_host_info(self, hostname="", host_id=""):
         logger.debug("Retrieving information about host %s."%(hostname))
         rule = {"host": hostname} if hostname != "" else {"hostid": host_id}
-        return self.zapi.host.get(filter=rule)
+        return self.zapi.host.get(filter=rule, selectParentTemplates=[])
 
     def enable_host(self, host_id):
         host = self.get_host_info(host_id=host_id)
@@ -522,54 +523,6 @@ Agent port: {HOST.PORT}''',
 
         return 1
 
-    def add_ssl_certificates_checking(self, host_id, url_list):
-        distinct_list = list()
-        for el in url_list:
-            if el["url"].split("://")[0] == "https":
-                server_name = el["url"].split("/")[2]
-                if not server_name in distinct_list:
-                    distinct_list.append(server_name)
-        logger.debug("Was found next list of vhosts with https mode.")
-        logger.debug(distinct_list)
-        host_info = self.get_host_info(host_id=host_id)[0]
-        interface_id = self.zapi.hostinterface.get(filter={"hostid": host_id})[0]["interfaceid"]
-        for vhost in distinct_list:
-            logger.debug("Creating certificate check item for vhost: %s."%(vhost))
-            item = {
-                "name": "Certificate expiration timestamp of %s"%(vhost),
-                "hostid": host_id,
-                "interfaceid": interface_id,
-                "key_": "certificate.endtimestamp[%s,443]"%(vhost),
-                "delay": "1h",
-                "type": 0,
-                "value_type": 3,
-                "history": "30d",
-                "trends": "60d"
-            }
-            self.create_item(item)
-            item = {
-                "name": "Certificate expiration date of %s"%(vhost),
-                "hostid": host_id,
-                "interfaceid": interface_id,
-                "key_": "certificate.enddate[%s,443]"%(vhost),
-                "delay": "1h",
-                "type": 0,
-                "value_type": 4,
-                "history": "1d",
-                "trends": "1d"
-            }
-            self.create_item(item)
-            logger.debug("Creating/updating warning and alert trigger.")
-            for el in [{"days": 30, "severity": 1},{"days": 7, "severity":4}]:
-                trigger = {
-                     "description": "SSL ceritificate of %s will expire in %d days"%(vhost,el["days"]),
-                     "expression": "{%s:certificate.endtimestamp[%s,443].last()}-{%s:certificate.endtimestamp[%s,443].now()}<%d"%(host_info["host"],vhost,host_info["host"],vhost,el["days"] * 24 * 3600),
-                     "priority": el["severity"],
-                     "url": "https://"+vhost
-                }
-                self.create_trigger(trigger)
-        return 1
-
     def save_json_config(self, source_json_object = dict(), target_file = ""):
         logger.debug("Saving json object into %s"%target_file)
         if (len(source_json_object) == 0):
@@ -582,6 +535,35 @@ Agent port: {HOST.PORT}''',
                 logger.debug("Custom config file was created.")
         except:
             logger.error("JSON object can not be saved into file.")
+        return 1
+
+    def get_template_info(self, name="", id=""):
+        logger.debug("Retrieving information about template {:s}.".format(name))
+        rule = {"host": name} if name != "" else {"id": id}
+        return self.zapi.template.get(filter=rule)
+
+    def assign_template(self, host_id, template_name):
+        template_id = self.get_template_info(name=template_name)[0]["templateid"]
+        logger.debug("Template id: {:s}".format(template_id))
+        logger.debug("Assigning template {:s} with host id {:s}".format(template_name,host_id))
+        current_templates = self.get_host_info(host_id=host_id)[0]["parentTemplates"]
+        data = {
+            "hostid": host_id,
+            "templates": current_templates
+        }
+        for item in current_templates:
+            if (item["templateid"] == template_id):
+                data = {}
+                break
+        if ("templates" in data):
+            data["templates"].append({"templateid": template_id})
+        if (len(data) > 0):
+            try:
+                self.zapi.host.update(data)
+            except:
+                return 0
+        else:
+            logger.debug("Template {:s} was already assigned before. Skipped.".format(template_name))
         return 1
 
     def main(self):
@@ -606,7 +588,6 @@ Agent port: {HOST.PORT}''',
         logger.info("Enabled default notify action." if self.enable_action(self.default_report_action) else "Skipped activating the default notify action.")
         logger.info("Added/Updated auto discovery action." if self.add_auto_discovery_action(self.host_metadata) else "Skipped adding auto discovery action.")
         logger.info("Initialization checking web urls." if self.add_web_scenario(host_id=host_id, url_list=self.url_list) else "Skipped initialization of web urls.")
-        logger.info("Created SSL certificates check trigggers." if self.add_ssl_certificates_checking(host_id=host_id, url_list=self.url_list) else "Skipped adding SSL check triggers.")
         logger.info("Adding zabbix configuration templates." if self.configuration_folder != "" and self.import_configuration() else "No configuration templates folder was identified.")
 
         logger.info("Creating default user group %s."%(self.default_user_group))
@@ -623,6 +604,8 @@ Agent port: {HOST.PORT}''',
             self.update_configuration(config={"authentication_type": self.authentication_type})
         # This step must be the last, when custom_config_json is already prepared for saving
         logger.info("Creating custom config." if self.save_json_config(self.custom_config_json, self.zabbix_custom_config) else "Skipped. Nothing to be saved.")
+        for template_name in self.additional_templates:
+            logger.info("Assigning templates with %s default host."%self.hostname if self.assign_template(host_id, template_name) else "Cannot assign template with host %s."%self.hostname)
 
         return self.logout()
 
