@@ -30,18 +30,11 @@
         docker run -d -h ${TESTS_CONTAINER_NAME} \
           --name ${TESTS_CONTAINER_NAME} \
           --env-file .env \
-          -p 127.0.0.1:4444:4444 \
           --network $(docker inspect --format="{{range .NetworkSettings.Networks }}{{.NetworkID}}{{ end }}" $(docker-compose ps -q server)) \
           --link $(docker-compose ps -q frontend | cut -c1-12):$(grep ZBX_SERVER_NAME .env | cut -d "=" -f 2) \
           -v $(pwd):/project \
           -w /project \
           ${TESTS_IMAGE}
-    - |
-        printf "Waiting while selenium be reachable."
-        while ! nc -z 127.0.0.1 4444; do
-          sleep 1
-          printf "."
-        done
-        echo
+    - sleep 5
     - docker exec ${TESTS_CONTAINER_NAME} tests/testing.py || exit 1
     - exit $(docker inspect -f {{.State.ExitCode}} $(docker-compose ps -q configurator))
