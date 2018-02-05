@@ -1,4 +1,8 @@
 ---
+  env:
+    TESTS_IMAGE=test_image
+    CONFIGURATOR_OPTIONS=--debug 
+
   sudo: enabled
 
   services:
@@ -8,6 +12,7 @@
     - sudo apt-get install -y curl
     - sudo curl -L https://github.com/docker/compose/releases/download/1.17.0/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose
     - sudo chmod +x /usr/local/bin/docker-compose
+    - docker build -t ${TESTS_IMAGE} -f tests/Dockerfile ./tests/
 
   script:
     - docker-compose stop -t 0 && sudo rm -f ./data/
@@ -15,7 +20,7 @@
     - sudo ./x-setup-server.sh
     - docker images
     - docker ps -a
-    - CONFIGURATOR_OPTIONS=--debug docker-compose up -d
+    - docker-compose up -d
     - docker-compose logs -f configurator
     - docker-compose exec server zabbix_get -s agent -k docker.discovery
     - docker-compose exec server zabbix_get -s agent -k web.discovery[http,2]
