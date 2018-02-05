@@ -9,24 +9,15 @@
     - sudo curl -L https://github.com/docker/compose/releases/download/1.17.0/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose
     - sudo chmod +x /usr/local/bin/docker-compose
 
-  include:
-    - stage: "Cleanup"
-      script:
-        - docker-compose stop -t 0 && sudo rm -f ./data/
-    - stage: "Deploy"
-      script:
-        - cp .env.example .env
-        - sudo ./x-setup-server.sh
-    - stage: "Configuring"
-      script:
-        - docker images
-        - docker ps -a
-        - CONFIGURATOR_OPTIONS=--debug docker-compose up -d
-        - docker-compose logs -f configurator
-    - stage: "Test"
-      script:
-        - docker-compose exec server zabbix_get -s agent -k docker.discovery
-        - docker-compose exec server zabbix_get -s agent -k web.discovery[http,2]
-        - docker-compose exec server zabbix_get -s agent -k web.discovery[https,3]
-    - stage: "Summarize"
-      script: exit $(docker inspect -f {{.State.ExitCode}} $(docker-compose ps -q configurator))
+  script:
+    - docker-compose stop -t 0 && sudo rm -f ./data/
+    - cp .env.example .env
+    - sudo ./x-setup-server.sh
+    - docker images
+    - docker ps -a
+    - CONFIGURATOR_OPTIONS=--debug docker-compose up -d
+    - docker-compose logs -f configurator
+    - docker-compose exec server zabbix_get -s agent -k docker.discovery
+    - docker-compose exec server zabbix_get -s agent -k web.discovery[http,2]
+    - docker-compose exec server zabbix_get -s agent -k web.discovery[https,3]
+    - exit $(docker inspect -f {{.State.ExitCode}} $(docker-compose ps -q configurator))
