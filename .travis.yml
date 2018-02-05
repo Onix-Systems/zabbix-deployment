@@ -35,5 +35,6 @@
           -v $(pwd):/project \
           -w /project \
           ${TESTS_IMAGE}
+    - sleep 5
     - docker exec ${TESTS_CONTAINER_NAME} tests/testing.py || exit 1
     - exit $(docker inspect -f {{.State.ExitCode}} $(docker-compose ps -q configurator))
