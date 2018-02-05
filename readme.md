@@ -1,4 +1,5 @@
-## Be aware of environment's state using Zabbix solution [![Build Status](https://travis-ci.org/Onix-Systems/zabbix-deployment.svg?branch=master)](https://travis-ci.org/Onix-Systems/zabbix-deployment)
+## Be aware of environment's state using Zabbix solution 
+[![Build Status](https://travis-ci.org/Onix-Systems/zabbix-deployment.svg?branch=master)](https://travis-ci.org/Onix-Systems/zabbix-deployment)
 
 ### About
 Repository contain docker-compose project for running zabbix server on your own server.

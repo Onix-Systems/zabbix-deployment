@@ -14,9 +14,13 @@ SERVER=""
 LISTEN_IP=""
 HOSTNAME=""
 ENABLE_DOCKER_MODULE=false
-WITH_CERTIFICATE_PARAMS=false
+ENABLE_WEB_MODULE=false
+CONFIG_FOLDER=/etc/zabbix
+CUSTOM_CONFIG=${CONFIG_FOLDER}/custom.json
 MODULE_FOLDER=/var/lib/modules/zabbix
+SCRIPTS_FOLDER=/usr/local/bin
 MODULE_FILENAME=zabbix_module_docker.so
+WEB_DISCOVERY_CONFIG=${CONFIG_FOLDER}/web_list.json
 
 HELP_MESSAGE="Usage: ./$(basename $0) [OPTION]
 Script for installing and configuration zabbix agent.
@@ -27,7 +31,7 @@ Options:
     -s, --server [zabbix.local] Set zabbix server to connect by agent. This option is required.
     --hostname [agent.local]    Set agent hostname.
     --enable-docker-module      Download and enable docker module for agent. Is compartible with Template App Docker.
-    --with-certificate-params   Enable custom certificate parameters:
+    --enable-web-module         Enable custom web parameters:
                                     1) certificate.enddate[host,port] - returns datetime of expiration the certificate.
                                     2) certificate.endtimestamp[host,port] - returns datetime of expiration the certificate.
     -h, --help                  Show help.
@@ -63,8 +67,8 @@ do
                 --enable-docker-module)
                     ENABLE_DOCKER_MODULE=true
                 ;;
-                --with-certificate-params)
-                    WITH_CERTIFICATE_PARAMS=true
+                --enable-web-module)
+                    ENABLE_WEB_MODULE=true
                 ;;
                 *) # unknown option
                     echo "ERROR! Unknown option. See help."
@@ -111,7 +115,7 @@ else
 fi
 
 printf "Configuring zabbix agent to work with server: ${SERVER}. "
-CONFIG_FILE=/etc/zabbix/zabbix_agentd.d/custom.conf
+CONFIG_FILE=${CONFIG_FOLDER}/zabbix_agentd.d/custom.conf
 
 if [ -e "$(dirname ${CONFIG_FILE})" ]; then
 
@@ -136,11 +140,17 @@ LoadModule=${MODULE_FILENAME}
 EOF
 fi
 
-if [ "${WITH_CERTIFICATE_PARAMS}" == true ]; then
+if [ "${ENABLE_WEB_MODULE}" == true ]; then
+
+cp -f ./scripts/zabbix_web.py ${SCRIPTS_FOLDER}/zabbix_web.py
+chmod +x ${SCRIPTS_FOLDER}/zabbix_web.py
+
 cat << EOF >> ${CONFIG_FILE}
 UserParameter=certificate.endtimestamp[*],date --date "\$(echo | openssl s_client -showcerts -servername \$1 -connect \$1:\$2 2>/dev/null | openssl x509 -inform pem -noout -enddate | cut -d= -f2)" +%s
 UserParameter=certificate.enddate[*],date --date "\$(echo | openssl s_client -showcerts -servername \$1 -connect \$1:\$2 2>/dev/null | openssl x509 -inform pem -noout -enddate | cut -d= -f2)"
+UserParameter=web.discovery[*],zabbix_web.py discovery --config ${CUSTOM_CONFIG} --protocol \$1 --priority \$2 \$3
 EOF
+
 fi
 
 echo "Done."
@@ -149,6 +159,20 @@ else
   echo "Failed."
   exit 1
 fi
+
+printf "Init custom configuration file for agent. "
+if [ ! -e "${CUSTOM_CONFIG}" ]; then
+    echo "{}" > ${CUSTOM_CONFIG}
+else
+    echo "Configuration file is alredy exists. Skipped."
+fi
+
+printf "Copying examples. "
+for EXAMPLE in ${CUSTOM_CONFIG}; do
+    SOURCE="./examples/$(basename ${EXAMPLE}).example"
+    cp -f ${SOURCE} ${EXAMPLE}.example
+done
+echo "Done"
 
 printf "Checking zabbix agent service is enabled. "
 update-rc.d zabbix-agent enable

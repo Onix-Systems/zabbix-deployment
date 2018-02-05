@@ -1,0 +1,19 @@
+{
+  "web": [
+    {
+      "name": "site.local (frontend)",
+      "url": "http://site.local/frontend",
+      "priority": 2
+    },
+    {
+      "name": "site.local (backend)",
+      "url": "http://site.local/api/health",
+      "priority": 2
+    },
+    {
+      "name": "github.com",
+      "url": "https://github.com",
+      "priority": 3
+    }
+  ]
+}

@@ -27,6 +27,7 @@ Vagrant.configure("2") do |config|
       curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
       add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
       apt-key fingerprint 0EBFCD88
+      apt-get update
       apt-get install -y \
           docker-ce \
           iotop \
@@ -41,7 +42,7 @@ Vagrant.configure("2") do |config|
           echo "Skip this step, because docker-compose is already exist!"
       fi
       mkdir -p /var/lib/data
-      ln -sf /var/lib/data /vagrant/data
+      ln -sf /var/lib/data/ /vagrant/
       /vagrant/x-setup-server.sh
   SHELL
 
