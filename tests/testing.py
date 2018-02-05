@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-import os
+import os, sys
 from selenium import webdriver
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.common.keys import Keys
@@ -13,12 +13,14 @@ driver = webdriver.Remote(
 
 driver.get("http://{:s}".format(os.environ["ZBX_SERVER_NAME"]))
 title_prefix = os.environ["ZBX_SERVER_NAME"] + ":"
+exit_code=0
 print "Checking window title -",
 try:
     assert "{:s} Zabbix".format(title_prefix) == driver.title
     print "SUCCESS."
 except:
     print "FAILED."
+    exit_code=1
 
 print "Login into Zabbix UI -",
 try:
@@ -37,7 +39,10 @@ try:
         print "SUCCESS."
     except:
         print "FAILED."
+        exit_code=1
 except:
     print "FAILED ({:s}).".format(driver.title)
+    exit_code=1
 
 driver.quit()
+sys.exit(exit_code)

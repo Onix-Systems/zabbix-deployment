@@ -1,7 +1,8 @@
 ---
   env:
     TESTS_IMAGE=test_image
-    CONFIGURATOR_OPTIONS=--debug 
+    TESTS_CONTAINER_NAME=tests
+    CONFIGURATOR_OPTIONS=--debug
 
   sudo: enabled
 
@@ -24,5 +25,14 @@
     - docker-compose logs -f configurator
     - docker-compose exec server zabbix_get -s agent -k docker.discovery
     - docker-compose exec server zabbix_get -s agent -k web.discovery[http,2]
-    - docker-compose exec server zabbix_get -s agent -k web.discovery[https,3]
+    - docker-compose exec server zabbix_get -s agent -k web.discovery[https,-1,--unique]
+    - |
+        docker run -d -h ${TESTS_CONTAINER_NAME} \
+          --env-file .env \
+          --network $(docker inspect --format="{{range .NetworkSettings.Networks }}{{.NetworkID}}{{ end }}" $(docker-compose ps -q server)) \
+          --link $(docker-compose ps -q frontend | cut -c1-12):$(grep ZBX_SERVER_NAME .env | cut -d "=" -f 2) \
+          -v $(pwd):/project \
+          -w /project \
+          ${TESTS_IMAGE}
+    - docker exec ${TESTS_CONTAINER_NAME} tests/testing.py
     - exit $(docker inspect -f {{.State.ExitCode}} $(docker-compose ps -q configurator))
