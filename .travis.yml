@@ -28,11 +28,12 @@
     - docker-compose exec server zabbix_get -s agent -k web.discovery[https,-1,--unique]
     - |
         docker run -d -h ${TESTS_CONTAINER_NAME} \
+          --name ${TESTS_CONTAINER_NAME} \
           --env-file .env \
           --network $(docker inspect --format="{{range .NetworkSettings.Networks }}{{.NetworkID}}{{ end }}" $(docker-compose ps -q server)) \
           --link $(docker-compose ps -q frontend | cut -c1-12):$(grep ZBX_SERVER_NAME .env | cut -d "=" -f 2) \
           -v $(pwd):/project \
           -w /project \
           ${TESTS_IMAGE}
-    - docker exec ${TESTS_CONTAINER_NAME} tests/testing.py
+    - docker exec ${TESTS_CONTAINER_NAME} tests/testing.py || exit 1
     - exit $(docker inspect -f {{.State.ExitCode}} $(docker-compose ps -q configurator))
