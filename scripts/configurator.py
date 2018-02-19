@@ -331,7 +331,7 @@ Agent port: {HOST.PORT}''',
                 }
                 if len(http_test) > 0:
                     if http_test[0]["name"] == template["name"] and http_test[0]["steps"][0]["url"] == template["steps"][0]["url"]:
-                        logger.debug("No changed were detected. Skipped updating the web scenario")
+                        logger.debug("No changed were detected. Skipped updating the web scenario.")
                     else:
                         template["httptestid"] = http_test[0]["httptestid"]
                         del template["hostid"]
@@ -361,6 +361,19 @@ Agent port: {HOST.PORT}''',
             return 1
         else:
             return 0
+
+    def cleanup_undefined_web_scenario(self, host_id, url_list):
+        http_test = self.zapi.httptest.get(hostids=host_id)
+        cleanup = False
+        for item in http_test:
+            key = next((index for (index, d) in enumerate(url_list) if d["name"] == item["name"]), None)
+            if (key is None):
+                logger.debug("Removing web check for item with name: %s."%(item["name"]))
+                self.zapi.httptest.delete(int(item["httptestid"]))
+                cleanup = True
+        if (cleanup):
+            return 1
+        return 0
 
     def create_item(self, data):
         item = self.zapi.item.get(filter={"name": data["name"]})
@@ -588,6 +601,7 @@ Agent port: {HOST.PORT}''',
         logger.info("Enabled default notify action." if self.enable_action(self.default_report_action) else "Skipped activating the default notify action.")
         logger.info("Added/Updated auto discovery action." if self.add_auto_discovery_action(self.host_metadata) else "Skipped adding auto discovery action.")
         logger.info("Initialization checking web urls." if self.add_web_scenario(host_id=host_id, url_list=self.url_list) else "Skipped initialization of web urls.")
+        logger.info("Cleanup undefined web urls." if self.cleanup_undefined_web_scenario(host_id=host_id, url_list=self.url_list) else "Skipped cleanup of web urls. Nothing was found.")
         logger.info("Adding zabbix configuration templates." if self.configuration_folder != "" and self.import_configuration() else "No configuration templates folder was identified.")
 
         logger.info("Creating default user group %s."%(self.default_user_group))
