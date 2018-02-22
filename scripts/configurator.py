@@ -44,7 +44,7 @@ class Configurator:
         self.default_server_port = 10051
         # If server is unreachable than try to reconnect self.attempts_max_count times after wait timeout
         self.connect_attempt_wait_timeout = 5
-        self.connect_attempts_max_count = 10
+        self.connect_attempts_max_count = 30
         # SMTP settings
         self.smtp_server = os.environ["SMTP_SERVER"]
         self.smtp_email = os.environ["SMTP_EMAIL"]
