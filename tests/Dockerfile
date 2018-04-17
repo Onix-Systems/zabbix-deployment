@@ -12,7 +12,6 @@ RUN apt-get update && \
     apt-get install -y \
       python \
       python-pip && \
-    pip install pip --upgrade && \
     pip install selenium && \
     wget -q https://raw.githubusercontent.com/pgrange/bash_unit/master/bash_unit -O /usr/local/bin/bash_unit && \
     chmod +x /usr/local/bin/bash_unit
