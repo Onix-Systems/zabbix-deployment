@@ -1,4 +1,4 @@
-## Be aware of environment's state using Zabbix solution 
+## Be aware of environment's state by using Zabbix solution 
 [![Build Status](https://travis-ci.org/Onix-Systems/zabbix-deployment.svg?branch=master)](https://travis-ci.org/Onix-Systems/zabbix-deployment)
 
 ### About
