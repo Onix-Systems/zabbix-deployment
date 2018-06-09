@@ -10,7 +10,7 @@ Repository contain docker-compose project for running zabbix server on your own 
 1. MariaDB 10.3
 1. Exim4 SMTP service
 
-PS: Are used official docker images: https://hub.docker.com/u/zabbix/
+PS: It is used the official docker image: https://hub.docker.com/u/zabbix/
 
 ###
 Requirements
