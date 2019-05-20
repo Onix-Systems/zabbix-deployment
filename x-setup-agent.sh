@@ -21,6 +21,8 @@ MODULE_FOLDER=/var/lib/modules/zabbix
 SCRIPTS_FOLDER=/usr/local/bin
 MODULE_FILENAME=zabbix_module_docker.so
 WEB_DISCOVERY_CONFIG=${CONFIG_FOLDER}/web_list.json
+OS=$(lsb_release -is | tr '[:upper:]' '[:lower:]')
+OSV=$(lsb_release -rs | cut -d"." -f1)
 
 HELP_MESSAGE="Usage: ./$(basename $0) [OPTION]
 Script for installing and configuration zabbix agent.
@@ -106,9 +108,11 @@ echo "Done."
 printf "Downloading docker module. "
 if [ "${ENABLE_DOCKER_MODULE}" == true ]; then
     docker version &> /dev/null
-    if [ "$?" -ne 0 ]; then echo "Failed, docker-engine is not running."; exit 1; fi
-    wget -q https://github.com/monitoringartist/zabbix-docker-monitoring/raw/gh-pages/$(lsb_release -is | tr '[:upper:]' '[:lower:]')$(lsb_release -rs | cut -d"." -f1)/${ZBX_VERSION}/${MODULE_FILENAME} \
-         -O ${MODULE_FOLDER}/${MODULE_FILENAME}
+    if [ "${OS}" == "ubuntu" -a "${OSV}" == "18" ]; then
+        OSV="16"
+    fi
+    wget -q https://github.com/monitoringartist/zabbix-docker-monitoring/raw/gh-pages/${OS}${OSV}/${ZBX_VERSION}/${MODULE_FILENAME} \
+        -O ${MODULE_FOLDER}/${MODULE_FILENAME}
     usermod -aG docker zabbix
 else
     echo "Skipped."
