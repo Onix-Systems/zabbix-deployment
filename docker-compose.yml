@@ -3,6 +3,8 @@
 #
 
 version: "3"
+
+
 services:
 
   server:
@@ -81,6 +83,30 @@ services:
     image: tianon/exim4
     networks:
       - zabbix_net
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10M"
+        max-file: "5"
+
+  grafana:
+    hostname: grafana
+    build:
+      dockerfile: Dockerfile.grafana
+      context: ./
+    restart: always
+    ports:
+      - 3000:3000
+    networks:
+      - zabbix_net
+    volumes:
+      - "./data/grafana:/var/lib/grafana"
+      - "./data/grafana/dashboards:/var/lib/grafana/dashboards"
+      - "./data/grafana/datasources:/etc/grafana/datasources"
+      - "./data/grafana/plugins:/var/lib/grafana/plugins"
+    environment:
+      - GF_INSTALL_PLUGINS=alexanderzobnin-zabbix-app
     restart: unless-stopped
     logging:
       driver: "json-file"
