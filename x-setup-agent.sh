@@ -5,7 +5,8 @@ set -e
 cd $(dirname $0)
 
 # Setting default variables
-ZBX_VERSION=3.4
+ZBX_VERSION=4.2
+ZBX_DOCKER_MODULE_VER=3.4
 # Loading project options and overriding default variables
 if [ -e "../.env" ];  then source ../.env; fi
 
@@ -67,7 +68,7 @@ do
                     SHOW_HELP=true
                 ;;
                 --enable-docker-module)
-                    ENABLE_DOCKER_MODULE=true
+                    ENABLE_DOCKER_MODULE=false
                 ;;
                 --enable-web-module)
                     ENABLE_WEB_MODULE=true
@@ -111,7 +112,7 @@ if [ "${ENABLE_DOCKER_MODULE}" == true ]; then
     if [ "${OS}" == "ubuntu" -a "${OSV}" == "18" ]; then
         OSV="16"
     fi
-    wget -q https://github.com/monitoringartist/zabbix-docker-monitoring/raw/gh-pages/${OS}${OSV}/${ZBX_VERSION}/${MODULE_FILENAME} \
+    wget -q https://github.com/monitoringartist/zabbix-docker-monitoring/raw/gh-pages/${OS}${OSV}/${ZBX_DOCKER_MODULE_VER}/${MODULE_FILENAME} \
         -O ${MODULE_FOLDER}/${MODULE_FILENAME}
     usermod -aG docker zabbix
 else
