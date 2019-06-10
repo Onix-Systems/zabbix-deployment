@@ -1,3 +1,5 @@
 FROM grafana/grafana:latest
 
 USER root
+
+ENV GF_INSTALL_PLUGINS=alexanderzobnin-zabbix-app

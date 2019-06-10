@@ -29,6 +29,8 @@ def error(msg=""):
 
 class Configurator:
     def __init__(self):
+        self.grafana_username = "admin"
+        self.grafana_password = "admin"
         self.url = os.environ["ZBX_SERVER_URL"]
         self.server_host = os.environ["ZBX_SERVER_HOST"]
         self.default_admin_username = "admin"
@@ -94,6 +96,16 @@ class Configurator:
         self.configuration = json.loads(os.environ["ZBX_CONFIG"]) if "ZBX_CONFIG" in os.environ and os.environ["ZBX_CONFIG"].strip() != "" else []
         self.admin_users = json.loads(os.environ["ZBX_ADMIN_USERS"]) if "ZBX_ADMIN_USERS" in os.environ and os.environ["ZBX_ADMIN_USERS"].strip() != "" else []
         self.additional_templates = [x.strip() for x in os.environ["ZBX_ADDITIONAL_TEMPLATES"].split(",")] if "ZBX_ADDITIONAL_TEMPLATES" in os.environ else []
+
+    def pluginsg(self):
+        logger.debug("Grafana Plugin Curl Start")
+        plugURL = ("admin:%s@grafana:3000/api/plugins/alexanderzobnin-zabbix-app/settings?enabled=true"%self.grafana_password)
+        c = pycurl.Curl()
+        c.setopt(c.URL, plugURL)
+        c.setopt(c.POSTFIELDS, '{ '' }')
+        c.setopt(c.VERBOSE, True)
+        c.perform()
+        logger.debug("Grafana Plugin Curl End")
 
     def login(self):
         logger.debug("Login into Zabbix server (%s)."%(self.url))
@@ -580,7 +592,7 @@ Agent port: {HOST.PORT}''',
         return 1
 
     def main(self):
-
+        self.pluginsg()
         if self.authentication_type != self.default_authentication_type:
             logger.debug("Changing authentication_type to default to use api with basic credentials.")
             self.update_configuration(config={"authentication_type":self.default_authentication_type})

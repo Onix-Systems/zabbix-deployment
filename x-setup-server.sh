@@ -18,10 +18,13 @@ DEFAULT_HOST_SECRET=""
 if [ -e ".env" ];  then source .env; fi
 SERVER=${SUBNET_PREFIX}254
 
+./grafana.sh
+
 printf "Building, launching and configuring Zabbix server. "
 docker-compose build &> /dev/null
 docker-compose up -d &> /dev/null
 echo "Done."
+
 echo "Installing and configuring host's agent."
 echo $DEFAULT_HOST_METADATA
 ./x-setup-agent.sh \
