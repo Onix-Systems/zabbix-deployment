@@ -92,6 +92,8 @@ services:
 
   grafana:
     hostname: grafana
+    env_file:
+      - .env
     build:
       dockerfile: Dockerfile.grafana
       context: ./
@@ -104,6 +106,8 @@ services:
       - /data/grafana:/var/lib/grafana
       - /data/provisioning/dashboards:/etc/grafana/provisioning/dashboards
       - /data/provisioning/datasources:/etc/grafana/provisioning/datasources
+      - ./scripts/zabbix_dashboard.json:/var/lib/grafana/dashboards/zabbix_dashboard.json:ro
+      - /data/grafana/dashboards:/var/lib/grafana/dashboards
     restart: unless-stopped
     logging:
       driver: "json-file"
@@ -113,6 +117,8 @@ services:
 
   configurator:
     hostname: configuration
+    env_file:
+      - .env
     build:
       dockerfile: Dockerfile.configurator
       context: ./
@@ -121,6 +127,8 @@ services:
       - ./scripts/configurator.py:/configurator.py:ro
       - ./configuration:/configuration:ro
       - /etc/zabbix:/etc/zabbix
+      - /data/provisioning/dashboards:/grafana/provisioning/dashboards
+      - /data/provisioning/datasources:/grafana/provisioning/datasources
     links:
       - db
       - frontend
@@ -152,6 +160,11 @@ services:
       - ZBX_CUSTOM_CONFIG=custom.json
       # Usage: ZBX_ADDITIONAL_TEMPLATES=template1,template2
       - ZBX_ADDITIONAL_TEMPLATES=Template Web Check, Template App Docker
+      #GRAFANA ENVIRONMENTS
+      - GRA_DSOURCE_YAML=/grafana/provisioning/datasources/datasource.yaml
+      - GRA_DBOARD_YAML=/grafana/provisioning/dashboards/dashboard.yaml
+      - GRA_ADMIN_PASS=${GF_SECURITY_ADMIN_PASSWORD}
+      - GRA_HOSTNAME=grafana
 networks:
   zabbix_net:
     driver: bridge

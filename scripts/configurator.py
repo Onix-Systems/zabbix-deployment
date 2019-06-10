@@ -29,8 +29,10 @@ def error(msg=""):
 
 class Configurator:
     def __init__(self):
-        self.grafana_username = "admin"
-        self.grafana_password = "admin"
+        self.grafana_password = os.environ["GF_SECURITY_ADMIN_PASSWORD"]
+        self.grafana_datas_yaml = os.environ["GRA_DSOURCE_YAML"]
+        self.grafana_dashb_yaml = os.environ["GRA_DBOARD_YAML"]
+        self.grafana_hostname = os.environ["GRA_HOSTNAME"]
         self.url = os.environ["ZBX_SERVER_URL"]
         self.server_host = os.environ["ZBX_SERVER_HOST"]
         self.default_admin_username = "admin"
@@ -97,15 +99,63 @@ class Configurator:
         self.admin_users = json.loads(os.environ["ZBX_ADMIN_USERS"]) if "ZBX_ADMIN_USERS" in os.environ and os.environ["ZBX_ADMIN_USERS"].strip() != "" else []
         self.additional_templates = [x.strip() for x in os.environ["ZBX_ADDITIONAL_TEMPLATES"].split(",")] if "ZBX_ADDITIONAL_TEMPLATES" in os.environ else []
 
-    def pluginsg(self):
+    def grafana_plugin_on(self):
         logger.debug("Grafana Plugin Curl Start")
-        plugURL = ("admin:%s@grafana:3000/api/plugins/alexanderzobnin-zabbix-app/settings?enabled=true"%self.grafana_password)
+        plugURL = ("admin:{0}@{1}:3000/api/plugins/alexanderzobnin-zabbix-app/settings?enabled=true".format(self.grafana_password, self.grafana_hostname))
         c = pycurl.Curl()
         c.setopt(c.URL, plugURL)
         c.setopt(c.POSTFIELDS, '{ '' }')
         c.setopt(c.VERBOSE, True)
         c.perform()
-        logger.debug("Grafana Plugin Curl End")
+
+    def grafana_configurator(self):
+        #Grafana Port Checker
+        while True:
+            time.sleep(1)
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            result = sock.connect_ex((self.grafana_hostname,3000))
+            if result == 0:
+                logger.debug("Grafana Port Is Open")
+                self.grafana_plugin_on()
+                sock.close()
+                break
+            else:
+                logger.debug("Grafana Port Is Close, Try...")
+                sock.close()
+
+        #DATASOURCE.YAML
+        yaml_file_ds = open(self.grafana_datas_yaml, 'w')
+        yaml_file_ds.write('apiVersion: 1\n\n')
+        yaml_file_ds.write('datasources:\n')
+        yaml_file_ds.write('- name: Zabbix\n')
+        yaml_file_ds.write('  type: alexanderzobnin-zabbix-datasource\n')
+        yaml_file_ds.write('  access: proxy\n')
+        yaml_file_ds.write('  url: {}/api_jsonrpc.php\n'.format(self.url))
+        yaml_file_ds.write('  isDefault: true\n')
+        yaml_file_ds.write('  jsonData:\n')
+        yaml_file_ds.write('    username: admin\n')
+        yaml_file_ds.write('    password: zabbix\n')
+        yaml_file_ds.write('    trends: true\n')
+        yaml_file_ds.write('    trendsFrom: 7d\n')
+        yaml_file_ds.write('    trendsRange: 4d\n')
+        yaml_file_ds.write('    cacheTTL: 1h\n')
+        yaml_file_ds.write('    alerting: true\n')
+        yaml_file_ds.write('  version: 1\n')
+        yaml_file_ds.write('  editable: false\n')
+        yaml_file_ds.close()
+
+        #DASHBOARD.YAML
+        yaml_file_db = open(self.grafana_dashb_yaml, 'w')
+        yaml_file_db.write('apiVersion: 1\n\n')
+        yaml_file_db.write('providers:\n')
+        yaml_file_db.write(' - name: Dashboards\n')
+        yaml_file_db.write('   folder: Dashboards\n')
+        yaml_file_db.write('   folderUid: \n')
+        yaml_file_db.write('   type: file\n')
+        yaml_file_db.write('   updateIntervalSeconds: 60\n')
+        yaml_file_db.write('   options:\n')
+        yaml_file_db.write('     path: /var/lib/grafana/dashboards')
+        yaml_file_db.close()
 
     def login(self):
         logger.debug("Login into Zabbix server (%s)."%(self.url))
@@ -592,7 +642,7 @@ Agent port: {HOST.PORT}''',
         return 1
 
     def main(self):
-        self.pluginsg()
+        self.grafana_configurator()
         if self.authentication_type != self.default_authentication_type:
             logger.debug("Changing authentication_type to default to use api with basic credentials.")
             self.update_configuration(config={"authentication_type":self.default_authentication_type})
