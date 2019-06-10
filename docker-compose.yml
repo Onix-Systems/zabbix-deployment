@@ -104,10 +104,10 @@ services:
       - zabbix_net
     volumes:
       - /data/grafana:/var/lib/grafana
+      - /data/grafana/dashboards:/var/lib/grafana/dashboards
       - /data/provisioning/dashboards:/etc/grafana/provisioning/dashboards
       - /data/provisioning/datasources:/etc/grafana/provisioning/datasources
       - ./scripts/zabbix_dashboard.json:/var/lib/grafana/dashboards/zabbix_dashboard.json:ro
-      - /data/grafana/dashboards:/var/lib/grafana/dashboards
     restart: unless-stopped
     logging:
       driver: "json-file"
