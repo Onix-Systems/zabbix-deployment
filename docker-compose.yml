@@ -50,6 +50,8 @@ services:
       - MYSQL_DATABASE=${MYSQL_DATABASE:-zabbix}
       - MYSQL_USER=${MYSQL_USER:-zabbix}
       - MYSQL_PASSWORD=${MYSQL_PASSWORD:-zabbix}
+    volumes:
+      - ./scripts/nginx.conf:/etc/zabbix/nginx.conf:ro
     restart: unless-stopped
     logging:
       driver: "json-file"
@@ -108,6 +110,8 @@ services:
       - /data/provisioning/dashboards:/etc/grafana/provisioning/dashboards
       - /data/provisioning/datasources:/etc/grafana/provisioning/datasources
       - ./scripts/zabbix_dashboard.json:/var/lib/grafana/dashboards/zabbix_dashboard.json:ro
+      - ./scripts/grafana.ini:/etc/grafana/grafana.ini:ro
+      - ./scripts/ldap.toml:/etc/grafana/ldap.toml:ro
     restart: unless-stopped
     logging:
       driver: "json-file"
