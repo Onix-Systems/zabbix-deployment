@@ -32,7 +32,8 @@ class Configurator:
         self.grafana_password = os.environ["GF_SECURITY_ADMIN_PASSWORD"]
         self.grafana_datas_yaml = os.environ["GRA_DSOURCE_YAML"]
         self.grafana_dashb_yaml = os.environ["GRA_DBOARD_YAML"]
-        self.grafana_hostname = os.environ["GRA_HOSTNAME"]
+        self.grafana_hostname = os.environ["GRA_HOST"]
+        self.grafana_pt_dashboards = os.environ["GRA_PATH_TO_DASHBOARDS"]
         self.url = os.environ["ZBX_SERVER_URL"]
         self.server_host = os.environ["ZBX_SERVER_HOST"]
         self.default_admin_username = "admin"
@@ -111,14 +112,14 @@ class Configurator:
 
     def grafana_dashboard_starred(self):
         logger.debug("Grafana Dashboard Starred")
-        path, dirs, files = os.walk("/grafana/zabbix_dashboards").next()
+        path, dirs, files = os.walk(self.grafana_pt_dashboards).next()
         file_count = len(files)
         print (file_count)
 
         dashboard_id = 1
-
+        #Condition for find more then one dashboard.json file (need for add to favorite)
         while dashboard_id <= file_count:
-              print (dashboard_id)
+              #print (dashboard_id)
               plugURL = ("{0}:3000/api/user/stars/dashboard/{1}".format(self.grafana_hostname, dashboard_id))
               c = pycurl.Curl()
               c.setopt(c.USERPWD, "%s:%s" % ("admin", self.grafana_password))
@@ -126,7 +127,7 @@ class Configurator:
               c.setopt(c.POSTFIELDS, '{ '' }')
               c.setopt(c.VERBOSE, True)
               c.perform()
-              dashboard_id = dashboard_id + 1
+              dashboard_id = dashboard_id + 1 #So simply :)
 
     def grafana_configurator(self):
         #DATASOURCE.YAML
@@ -140,7 +141,7 @@ class Configurator:
         yaml_file_ds.write('  isDefault: true\n')
         yaml_file_ds.write('  jsonData:\n')
         yaml_file_ds.write('    username: admin\n')
-        yaml_file_ds.write('    password: zabbix\n')
+        yaml_file_ds.write('    password: {0}\n'.format(self.admin_password))
         yaml_file_ds.write('    trends: true\n')
         yaml_file_ds.write('    trendsFrom: 7d\n')
         yaml_file_ds.write('    trendsRange: 4d\n')
@@ -156,21 +157,21 @@ class Configurator:
         yaml_file_db.write('providers:\n')
         yaml_file_db.write(' - name: Zabbix\n')
         yaml_file_db.write('   folder:\n')
-        #yaml_file_db.write('   folderUid: \n')
+        yaml_file_db.write('   folderUid: \n')
         yaml_file_db.write('   type: file\n')
         yaml_file_db.write('   updateIntervalSeconds: 60\n')
         yaml_file_db.write('   options:\n')
         yaml_file_db.write('     path: /var/lib/grafana/dashboards')
         yaml_file_db.close()
-        #Frontend Port Checker (need for check, if server start)
+        #Grafana Port Checker (need for check, if server start?)
         while True:
             time.sleep(1)
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             result = sock.connect_ex((self.grafana_hostname,3000))
             if result == 0:
                 logger.debug("Grafana Server is Started")
-                self.grafana_plugin_on()
-                self.grafana_dashboard_starred()
+                self.grafana_plugin_on() #Enable Plugin
+                self.grafana_dashboard_starred() #Add all dashboards to favorite
                 sock.close()
                 break
             else:

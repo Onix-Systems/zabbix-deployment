@@ -168,7 +168,8 @@ services:
       - GRA_DSOURCE_YAML=/grafana/provisioning/datasources/datasource.yaml
       - GRA_DBOARD_YAML=/grafana/provisioning/dashboards/dashboard.yaml
       - GRA_ADMIN_PASS=${GF_SECURITY_ADMIN_PASSWORD}
-      - GRA_HOSTNAME=grafana
+      - GRA_PATH_TO_DASHBOARDS=/grafana/zabbix_dashboards
+      - GRA_HOST=grafana
 networks:
   zabbix_net:
     driver: bridge
