@@ -100,16 +100,15 @@ services:
       dockerfile: Dockerfile.grafana
       context: ./
     restart: always
-    ports:
-      - 3000:3000
+#    ports:
+#      - 3000:3000
     networks:
       - zabbix_net
     volumes:
       - /data/grafana:/var/lib/grafana
-      - /data/grafana/dashboards:/var/lib/grafana/dashboards
       - /data/provisioning/dashboards:/etc/grafana/provisioning/dashboards
       - /data/provisioning/datasources:/etc/grafana/provisioning/datasources
-      - ./scripts/zabbix_dashboard.json:/var/lib/grafana/dashboards/zabbix_dashboard.json:ro
+      - ./scripts/zabbix_dashboards:/var/lib/grafana/dashboards
       - ./scripts/grafana.ini:/etc/grafana/grafana.ini:ro
       - ./scripts/ldap.toml:/etc/grafana/ldap.toml:ro
     restart: unless-stopped
@@ -133,6 +132,7 @@ services:
       - /etc/zabbix:/etc/zabbix
       - /data/provisioning/dashboards:/grafana/provisioning/dashboards
       - /data/provisioning/datasources:/grafana/provisioning/datasources
+      - ./scripts/zabbix_dashboards:/grafana/zabbix_dashboards
     links:
       - db
       - frontend

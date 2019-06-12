@@ -101,7 +101,7 @@ class Configurator:
 
     def grafana_plugin_on(self):
         logger.debug("Grafana Plugin Curl Start")
-        plugURL = ("{0}/grafana/api/plugins/alexanderzobnin-zabbix-app/settings?enabled=true".format(self.url))
+        plugURL = ("{0}:3000/api/plugins/alexanderzobnin-zabbix-app/settings?enabled=true".format(self.grafana_hostname))
         c = pycurl.Curl()
         c.setopt(c.USERPWD, "%s:%s" % ("admin", self.grafana_password))
         c.setopt(c.URL, plugURL)
@@ -111,29 +111,24 @@ class Configurator:
 
     def grafana_dashboard_starred(self):
         logger.debug("Grafana Dashboard Starred")
-        plugURL = ("{0}/grafana/api/user/stars/dashboard/1".format(self.url))
-        c = pycurl.Curl()
-        c.setopt(c.USERPWD, "%s:%s" % ("admin", self.grafana_password))
-        c.setopt(c.URL, plugURL)
-        c.setopt(c.POSTFIELDS, '{ '' }')
-        c.setopt(c.VERBOSE, True)
-        c.perform()
+        path, dirs, files = os.walk("/grafana/zabbix_dashboards").next()
+        file_count = len(files)
+        print (file_count)
+
+        dashboard_id = 1
+
+        while dashboard_id <= file_count:
+              print (dashboard_id)
+              plugURL = ("{0}:3000/api/user/stars/dashboard/{1}".format(self.grafana_hostname, dashboard_id))
+              c = pycurl.Curl()
+              c.setopt(c.USERPWD, "%s:%s" % ("admin", self.grafana_password))
+              c.setopt(c.URL, plugURL)
+              c.setopt(c.POSTFIELDS, '{ '' }')
+              c.setopt(c.VERBOSE, True)
+              c.perform()
+              dashboard_id = dashboard_id + 1
 
     def grafana_configurator(self):
-        #Grafana Port Checker
-        while True:
-            time.sleep(1)
-            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            result = sock.connect_ex((self.grafana_hostname,3000))
-            if result == 0:
-                logger.debug("Grafana Port Is Open")
-                self.grafana_plugin_on()
-                sock.close()
-                break
-            else:
-                logger.debug("Grafana Port Is Close, Try...")
-                sock.close()
-
         #DATASOURCE.YAML
         yaml_file_ds = open(self.grafana_datas_yaml, 'w')
         yaml_file_ds.write('apiVersion: 1\n\n')
@@ -167,6 +162,21 @@ class Configurator:
         yaml_file_db.write('   options:\n')
         yaml_file_db.write('     path: /var/lib/grafana/dashboards')
         yaml_file_db.close()
+        #Frontend Port Checker (need for check, if server start)
+        while True:
+            time.sleep(1)
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            result = sock.connect_ex((self.grafana_hostname,3000))
+            if result == 0:
+                logger.debug("Grafana Server is Started")
+                self.grafana_plugin_on()
+                self.grafana_dashboard_starred()
+                sock.close()
+                break
+            else:
+                logger.debug("Grafana Server still not start, Try...")
+                sock.close()
+
 
     def login(self):
         logger.debug("Login into Zabbix server (%s)."%(self.url))
@@ -654,7 +664,6 @@ Agent port: {HOST.PORT}''',
 
     def main(self):
         self.grafana_configurator()
-        self.grafana_dashboard_starred() #call Grafanas databoard starred (Fix Grafanas Bug with Pass_Proxyes)
         if self.authentication_type != self.default_authentication_type:
             logger.debug("Changing authentication_type to default to use api with basic credentials.")
             self.update_configuration(config={"authentication_type":self.default_authentication_type})
