@@ -101,8 +101,19 @@ class Configurator:
 
     def grafana_plugin_on(self):
         logger.debug("Grafana Plugin Curl Start")
-        plugURL = ("admin:{0}@{1}:3000/api/plugins/alexanderzobnin-zabbix-app/settings?enabled=true".format(self.grafana_password, self.grafana_hostname))
+        plugURL = ("{0}/grafana/api/plugins/alexanderzobnin-zabbix-app/settings?enabled=true".format(self.url))
         c = pycurl.Curl()
+        c.setopt(c.USERPWD, "%s:%s" % ("admin", self.grafana_password))
+        c.setopt(c.URL, plugURL)
+        c.setopt(c.POSTFIELDS, '{ '' }')
+        c.setopt(c.VERBOSE, True)
+        c.perform()
+
+    def grafana_dashboard_starred(self):
+        logger.debug("Grafana Dashboard Starred")
+        plugURL = ("{0}/grafana/api/user/stars/dashboard/1".format(self.url))
+        c = pycurl.Curl()
+        c.setopt(c.USERPWD, "%s:%s" % ("admin", self.grafana_password))
         c.setopt(c.URL, plugURL)
         c.setopt(c.POSTFIELDS, '{ '' }')
         c.setopt(c.VERBOSE, True)
@@ -148,9 +159,9 @@ class Configurator:
         yaml_file_db = open(self.grafana_dashb_yaml, 'w')
         yaml_file_db.write('apiVersion: 1\n\n')
         yaml_file_db.write('providers:\n')
-        yaml_file_db.write(' - name: Dashboards\n')
-        yaml_file_db.write('   folder: Dashboards\n')
-        yaml_file_db.write('   folderUid: \n')
+        yaml_file_db.write(' - name: Zabbix\n')
+        yaml_file_db.write('   folder:\n')
+        #yaml_file_db.write('   folderUid: \n')
         yaml_file_db.write('   type: file\n')
         yaml_file_db.write('   updateIntervalSeconds: 60\n')
         yaml_file_db.write('   options:\n')
@@ -643,6 +654,7 @@ Agent port: {HOST.PORT}''',
 
     def main(self):
         self.grafana_configurator()
+        self.grafana_dashboard_starred() #call Grafanas databoard starred (Fix Grafanas Bug with Pass_Proxyes)
         if self.authentication_type != self.default_authentication_type:
             logger.debug("Changing authentication_type to default to use api with basic credentials.")
             self.update_configuration(config={"authentication_type":self.default_authentication_type})

@@ -192,5 +192,5 @@ rm -f /tmp/zabbix-release.deb
 echo "Done."
 
 printf "Restarting All Containers"
-#docker restart $(docker ps -q) > /dev/null
+docker restart $(docker ps -q) > /dev/null
 echo "Done."
