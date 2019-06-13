@@ -5,7 +5,7 @@ set -e
 cd $(dirname $0)
 
 # Setting default variables
-ZBX_VERSION=4.2
+ZBX_VERSION=3.4
 ZBX_DOCKER_MODULE_VER=3.4
 # Loading project options and overriding default variables
 if [ -e "../.env" ];  then source ../.env; fi
@@ -68,7 +68,7 @@ do
                     SHOW_HELP=true
                 ;;
                 --enable-docker-module)
-                    ENABLE_DOCKER_MODULE=false
+                    ENABLE_DOCKER_MODULE=true
                 ;;
                 --enable-web-module)
                     ENABLE_WEB_MODULE=true
