@@ -163,10 +163,17 @@ class Configurator:
         yaml_file_db.write('   options:\n')
         yaml_file_db.write('     path: /var/lib/grafana/dashboards')
         yaml_file_db.close()
+        
         #Grafana Port Checker (need for check, if server start?)
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        timeconn = 1
+        timeconn_timeout = 10
         while True:
             time.sleep(1)
-            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+            if timeconn == timeconn_timeout:
+                break
+
             result = sock.connect_ex((self.grafana_hostname,3000))
             if result == 0:
                 logger.debug("Grafana Server is Started")
@@ -176,7 +183,8 @@ class Configurator:
                 break
             else:
                 logger.debug("Grafana Server still not start, Try...")
-                sock.close()
+                timeconn = timeconn + 1
+        sock.close()
 
 
     def login(self):

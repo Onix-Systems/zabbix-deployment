@@ -51,7 +51,7 @@ services:
       - MYSQL_USER=${MYSQL_USER:-zabbix}
       - MYSQL_PASSWORD=${MYSQL_PASSWORD:-zabbix}
     volumes:
-      - ./scripts/nginx.conf:/etc/zabbix/nginx.conf:ro
+      - ./configs/nginx.conf:/etc/zabbix/nginx.conf:ro
     restart: unless-stopped
     logging:
       driver: "json-file"
@@ -103,12 +103,12 @@ services:
     networks:
       - zabbix_net
     volumes:
-      - /data/grafana:/var/lib/grafana
-      - /data/provisioning/dashboards:/etc/grafana/provisioning/dashboards
-      - /data/provisioning/datasources:/etc/grafana/provisioning/datasources
+      - ./data/grafana:/var/lib/grafana
+      - ./data/provisioning/dashboards:/etc/grafana/provisioning/dashboards
+      - ./data/provisioning/datasources:/etc/grafana/provisioning/datasources
       - ./scripts/zabbix_dashboards:/var/lib/grafana/dashboards
-      - ./scripts/grafana.ini:/etc/grafana/grafana.ini:ro
-      - ./scripts/ldap.toml:/etc/grafana/ldap.toml:ro
+      - ./configs/grafana.ini:/etc/grafana/grafana.ini:ro
+      - ./configs/ldap.toml:/etc/grafana/ldap.toml:ro
     restart: unless-stopped
     logging:
       driver: "json-file"
@@ -128,8 +128,8 @@ services:
       - ./scripts/configurator.py:/configurator.py:ro
       - ./configuration:/configuration:ro
       - /etc/zabbix:/etc/zabbix
-      - /data/provisioning/dashboards:/grafana/provisioning/dashboards
-      - /data/provisioning/datasources:/grafana/provisioning/datasources
+      - ./data/provisioning/dashboards:/grafana/provisioning/dashboards
+      - ./data/provisioning/datasources:/grafana/provisioning/datasources
       - ./scripts/zabbix_dashboards:/grafana/zabbix_dashboards
     links:
       - db

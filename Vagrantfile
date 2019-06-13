@@ -17,23 +17,23 @@ Vagrant.configure("2") do |config|
       # Set our native time zone in VM
       ln -sf /usr/share/zoneinfo/Europe/Kiev /etc/localtime
       # mc repo
-      echo "deb http://www.tataranovich.com/debian $(lsb_release -cs) main" > /etc/apt/sources.list.d/mc.list
-      apt-key adv --keyserver pool.sks-keyservers.net --recv-keys 0x836CC41976FB442E
-      apt-get update
-      apt-get install -y \
-          apt-transport-https \
-          ca-certificates \
-          curl \
-          software-properties-common
-      curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
-      add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
-      apt-key fingerprint 0EBFCD88
-      apt-get update
-      apt-get install -y \
-          docker-ce \
-          iotop \
-          htop \
-          mc
+      #echo "deb http://www.tataranovich.com/debian $(lsb_release -cs) main" > /etc/apt/sources.list.d/mc.list
+      #apt-key adv --keyserver pool.sks-keyservers.net --recv-keys 0x836CC41976FB442E
+      #apt-get update
+      #apt-get install -y \
+      #    apt-transport-https \
+      #    ca-certificates \
+      #    curl \
+      #    software-properties-common
+      #curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
+      #add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+      #apt-key fingerprint 0EBFCD88
+      #apt-get update
+      #apt-get install -y \
+      #    docker-ce \
+      #    iotop \
+      #    htop \
+      #    mc
       
       echo "Getting docker-compose from official repository..."
       if [ ! -e "/usr/local/bin/docker-compose" ]; then
