@@ -16,8 +16,8 @@
     - docker build -t ${TESTS_IMAGE} -f tests/Dockerfile ./tests/
 
   script:
-    - docker-compose stop -t 0 && sudo rm -f ./data/
     - cp .env.example .env
+    - docker-compose stop -t 0 && sudo rm -f ./data/
     - sudo ./x-setup-server.sh
     - docker images
     - docker ps -a
