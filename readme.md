@@ -21,7 +21,7 @@ Requirements
 
 ### Preparing configuration file for server
 
-If default options are not enough, then please use `.env.example` to create own environment configuration file.
+Tou need to create configuration file `.env` from `.env.example`
 
 ### Run Zabbix server
 
@@ -33,7 +33,7 @@ Zabbix agent on host machine, where Zabbix server works inside the docker enviro
 
 #### Run and configured only server components
 ```shell
-$ docker-compose up -d
+$ docker-compose up -d && docker restart $(docker ps -q)
 ```
 Zabbix provisioned service is **configurator**, after succesfully configuring the server, configurator has to return exit code 0.
 To be sure that it is precisely so, execute such command and look at state column:

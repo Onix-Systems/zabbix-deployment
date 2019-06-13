@@ -100,8 +100,6 @@ services:
       dockerfile: Dockerfile.grafana
       context: ./
     restart: always
-#    ports:
-#      - 3000:3000
     networks:
       - zabbix_net
     volumes:

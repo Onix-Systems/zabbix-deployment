@@ -4,6 +4,4 @@ USER root
 
 ENV GF_INSTALL_PLUGINS=alexanderzobnin-zabbix-app
 
-#ENV GF_PATHS_CONFIG=/var/lib/grafana/grafana.ini
-
 RUN chown -R grafana:grafana /etc/grafana
