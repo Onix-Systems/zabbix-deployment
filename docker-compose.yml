@@ -106,10 +106,33 @@ services:
       - ./data/provisioning/datasources:/etc/grafana/provisioning/datasources
       - ./scripts/zabbix_dashboards:/var/lib/grafana/dashboards
       - ./configs/grafana.ini:/etc/grafana/grafana.ini:ro
-      - ./configs/ldap.toml:/etc/grafana/ldap.toml:ro
     restart: unless-stopped
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=${GF_SECURITY_ADMIN_PASSWORD:-grafana}
+      - GF_AUTH_LDAP_ENABLED=${GF_AUTH_LDAP_ENABLED:-true}
+      - GF_AUTH_LDAP_CONFIG_FILE=${GF_AUTH_LDAP_CONFIG_FILE:-/etc/grafana/ldap_custom.toml}
+      - GF_AUTH_LDAP_ALLOW_SIGN_UP=${GF_AUTH_LDAP_ALLOW_SIGN_UP:-true}
+      ##########LDAP CONFIG ENVIROMENTS##########
+      - LDAP_GF_HOST=${LDAP_GF_HOST:-172.17.0.1}
+      - LDAP_GF_PORT=${LDAP_GF_PORT:-389}
+      - LDAP_GF_USE_SSL=${LDAP_GF_USE_SSL:-false}
+      - LDAP_GF_START_TLS=${LDAP_GF_START_TLS:-false}
+      - LDAP_GF_SKIP_VERIFY=${LDAP_GF_SKIP_VERIFY:-false}
+      - LDAP_GF_BIND_DN=${LDAP_GF_BIND_DN:-cn=admin,dc=example,dc=org}
+      - LDAP_GF_BIND_PASSWORD=${LDAP_GF_BIND_PASSWORD:-admin}
+      - LDAP_GF_SEARCH_FILTER=${LDAP_GF_SEARCH_FILTER:-(cn=%s)}
+      - LDAP_GF_SEARCH_BASE_DNS=${LDAP_GF_SEARCH_BASE_DNS:-dc=example,dc=org}
+      - LDAP_GF_NAME=${LDAP_GF_NAME:-giveName}
+      - LDAP_GF_SURNAME=${LDAP_GF_SURNAME:-sn}
+      - LDAP_GF_USERNAME=${LDAP_GF_USERNAME:-cn}
+      - LDAP_GF_MEMBER_OF=${LDAP_GF_MEMBER_OF:-memberOf}
+      - LDAP_GF_EMAIL=${LDAP_GF_EMAIL:-email}
+      - LDAP_GF_GROUP_DN_ADMIN=${LDAP_GF_GROUP_DN_ADMIN:-cn=admins,dc=example,dc=org}
+      - LDAP_GF_ORG_ROLE_ADMIN=${LDAP_GF_ORG_ROLE_ADMIN:-Admin}
+      - LDAP_GF_GROUP_DN_EDITOR={LDAP_GF_GROUP_DN_EDITOR:-cn=users,dc=example,dc=org}
+      - LDAP_GF_ORG_ROLE_EDITOR={LDAP_GF_ORG_ROLE_EDITOR:-Editor}
+      - LDAP_GF_GROUP_DN_VIEWER=${LDAP_GF_GROUP_DN_VIEWER:-*}
+      - LDAP_GF_ORG_ROLE_VIEWER=${LDAP_GF_ORG_ROLE_VIEWER:-Viewer}
     logging:
       driver: "json-file"
       options:

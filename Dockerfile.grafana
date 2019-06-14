@@ -4,4 +4,8 @@ USER root
 
 ENV GF_INSTALL_PLUGINS=alexanderzobnin-zabbix-app
 
-RUN chown -R grafana:grafana /etc/grafana
+COPY ./run.sh /
+
+RUN chmod +x /run.sh
+
+ENTRYPOINT [ "/run.sh" ]
