@@ -51,7 +51,7 @@ services:
       - MYSQL_USER=${MYSQL_USER:-zabbix}
       - MYSQL_PASSWORD=${MYSQL_PASSWORD:-zabbix}
     volumes:
-      - ./configs/nginx.conf:/etc/zabbix/nginx.conf:ro
+      - ./configuration/nginx.conf:/etc/zabbix/nginx.conf:ro
     restart: unless-stopped
     logging:
       driver: "json-file"
@@ -105,7 +105,7 @@ services:
       - ./data/provisioning/dashboards:/etc/grafana/provisioning/dashboards
       - ./data/provisioning/datasources:/etc/grafana/provisioning/datasources
       - ./scripts/zabbix_dashboards:/var/lib/grafana/dashboards
-      - ./configs/grafana.ini:/etc/grafana/grafana.ini:ro
+      - ./configuration/grafana.ini:/etc/grafana/grafana.ini:ro
     restart: unless-stopped
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=${GF_SECURITY_ADMIN_PASSWORD:-grafana}
