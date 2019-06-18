@@ -7,6 +7,7 @@
 import argparse, json, logging, MySQLdb, os, pycurl, re, socket, time
 from pyzabbix import ZabbixAPI, ZabbixAPIException
 from StringIO import StringIO
+from jinja2 import Template
 
 parser = argparse.ArgumentParser(prog="./configurator.py", description="Zabbix configurator")
 parser.add_argument("--debug", action="store_true", help="Enable debug mode")
@@ -130,40 +131,49 @@ class Configurator:
               dashboard_id = dashboard_id + 1 #So simply :)
 
     def grafana_configurator(self):
-        #DATASOURCE.YAML
-        yaml_file_ds = open(self.grafana_datas_yaml, 'w')
-        yaml_file_ds.write('apiVersion: 1\n\n')
-        yaml_file_ds.write('datasources:\n')
-        yaml_file_ds.write('- name: Zabbix\n')
-        yaml_file_ds.write('  type: alexanderzobnin-zabbix-datasource\n')
-        yaml_file_ds.write('  access: proxy\n')
-        yaml_file_ds.write('  url: {}/api_jsonrpc.php\n'.format(self.url))
-        yaml_file_ds.write('  isDefault: true\n')
-        yaml_file_ds.write('  jsonData:\n')
-        yaml_file_ds.write('    username: admin\n')
-        yaml_file_ds.write('    password: {0}\n'.format(self.admin_password))
-        yaml_file_ds.write('    trends: true\n')
-        yaml_file_ds.write('    trendsFrom: 7d\n')
-        yaml_file_ds.write('    trendsRange: 4d\n')
-        yaml_file_ds.write('    cacheTTL: 1h\n')
-        yaml_file_ds.write('    alerting: true\n')
-        yaml_file_ds.write('  version: 1\n')
-        yaml_file_ds.write('  editable: false\n')
-        yaml_file_ds.close()
+#Datasource.yaml Template generation
+        tmpl = Template(u'''\
+apiVersion: 1
 
-        #DASHBOARD.YAML
-        yaml_file_db = open(self.grafana_dashb_yaml, 'w')
-        yaml_file_db.write('apiVersion: 1\n\n')
-        yaml_file_db.write('providers:\n')
-        yaml_file_db.write(' - name: Zabbix\n')
-        yaml_file_db.write('   folder:\n')
-        yaml_file_db.write('   folderUid: \n')
-        yaml_file_db.write('   type: file\n')
-        yaml_file_db.write('   updateIntervalSeconds: 60\n')
-        yaml_file_db.write('   options:\n')
-        yaml_file_db.write('     path: /var/lib/grafana/dashboards')
-        yaml_file_db.close()
-        
+datasources:
+- name: Zabbix
+  type: alexanderzobnin-zabbix-datasource
+  access: proxy
+  url: {0}/api_jsonrpc.php
+  isDefault: true
+  jsonData:
+    username: admin
+    password: {1}
+    trends: true
+    trendsFrom: 7d
+    trendsRange: 4d
+    cacheTTL: 1h
+    alerting: true
+  version: 1
+  editable: false
+        '''.format(self.url, self.admin_password))
+        ds_file = open(self.grafana_datas_yaml, "w")
+        ds_file.write(tmpl.render())
+        ds_file.close()
+
+#Dashboard.yaml Template generation
+        tmpl = Template(u'''\
+apiVersion: 1
+
+providers:
+ - name: Zabbix
+   folder:
+   folderUid:
+   type: file
+   updateIntervalSeconds: 60
+   options:
+     path: /var/lib/grafana/dashboards
+''')
+        db_file = open(self.grafana_dashb_yaml, "w")
+        db_file.write(tmpl.render())
+        db_file.close()
+
+
         #Grafana Port Checker (need for check, if server start?)
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         timeconn = 1

@@ -9,6 +9,7 @@ RUN apt-get update && \
       libssl-dev \
       python-pip && \
     pip install \
+      jinja2 \
       simplemysql \
       pycurl \
       pyzabbix && \
