@@ -131,47 +131,20 @@ class Configurator:
               dashboard_id = dashboard_id + 1 #So simply :)
 
     def grafana_configurator(self):
-#Datasource.yaml Template generation
-        tmpl = Template(u'''\
-apiVersion: 1
 
-datasources:
-- name: Zabbix
-  type: alexanderzobnin-zabbix-datasource
-  access: proxy
-  url: {0}/api_jsonrpc.php
-  isDefault: true
-  jsonData:
-    username: admin
-    password: {1}
-    trends: true
-    trendsFrom: 7d
-    trendsRange: 4d
-    cacheTTL: 1h
-    alerting: true
-  version: 1
-  editable: false
-        '''.format(self.url, self.admin_password))
-        ds_file = open(self.grafana_datas_yaml, "w")
-        ds_file.write(tmpl.render())
-        ds_file.close()
+        #Datasource.yaml Template generation
+        with open(self.configuration_folder+"/datasource.yaml.tmpl", 'r') as myfile:
+            data = myfile.read().format(self.url, self.admin_password)
+            ds_file = open(self.grafana_datas_yaml, "w")
+            ds_file.write(data)
+            ds_file.close()
 
-#Dashboard.yaml Template generation
-        tmpl = Template(u'''\
-apiVersion: 1
-
-providers:
- - name: Zabbix
-   folder:
-   folderUid:
-   type: file
-   updateIntervalSeconds: 60
-   options:
-     path: /var/lib/grafana/dashboards
-''')
-        db_file = open(self.grafana_dashb_yaml, "w")
-        db_file.write(tmpl.render())
-        db_file.close()
+        #Dashboard.yaml Template generation
+        with open(self.configuration_folder+"/dashboard.yaml.tmpl", 'r') as myfile:
+            data = myfile.read()
+            db_file = open(self.grafana_dashb_yaml, "w")
+            db_file.write(data)
+            db_file.close()
 
 
         #Grafana Port Checker (need for check, if server start?)
@@ -189,7 +162,6 @@ providers:
                 logger.debug("Grafana Server is Started")
                 self.grafana_plugin_on() #Enable Plugin
                 self.grafana_dashboard_starred() #Add all dashboards to favorite
-                sock.close()
                 break
             else:
                 logger.debug("Grafana Server still not start, Try...")
