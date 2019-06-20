@@ -7,7 +7,6 @@
 import argparse, json, logging, MySQLdb, os, pycurl, re, socket, time
 from pyzabbix import ZabbixAPI, ZabbixAPIException
 from StringIO import StringIO
-from jinja2 import Template
 
 parser = argparse.ArgumentParser(prog="./configurator.py", description="Zabbix configurator")
 parser.add_argument("--debug", action="store_true", help="Enable debug mode")
