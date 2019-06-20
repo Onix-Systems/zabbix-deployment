@@ -1,36 +1,37 @@
 #!/bin/bash -e
 
-echo "Generate Config File for LDAP"
-
-ldap_conf=${GF_AUTH_LDAP_CONFIG_FILE}
-echo "[[servers]]
-host = '${LDAP_GF_HOST}'
-port = ${LDAP_GF_PORT}
-use_ssl = ${LDAP_GF_USE_SSL}
-start_tls = ${LDAP_GF_START_TLS}
-ssl_skip_verify = ${LDAP_GF_SKIP_VERIFY}
-bind_dn = '${LDAP_GF_BIND_DN}'
-bind_password = '${LDAP_GF_BIND_PASSWORD}'
-search_filter = '${LDAP_GF_SEARCH_FILTER}'
-search_base_dns = ['${LDAP_GF_SEARCH_BASE_DNS}']
-[servers.attributes]
-name = '${LDAP_GF_NAME}'
-surname = '${LDAP_GF_SURNAME}'
-username = '${LDAP_GF_USERNAME}'
-member_of = '${LDAP_GF_MEMBER_OF}'
-email =  '${LDAP_GF_EMAIL}'
-[[servers.group_mappings]]
-group_dn = '${LDAP_GF_GROUP_DN_ADMIN}'
-org_role = '${LDAP_GF_ORG_ROLE_ADMIN}'
-[[servers.group_mappings]]
-group_dn = '${LDAP_GF_GROUP_DN_EDITOR}'
-org_role = '${LDAP_GF_ORG_ROLE_EDITOR}'
-[[servers.group_mappings]]
-group_dn = '${LDAP_GF_GROUP_DN_VIEWER}'
-org_role = '${LDAP_GF_ORG_ROLE_VIEWER}'" > $ldap_conf
-
-echo "Done!"
-
+	if [ "$GF_AUTH_LDAP_ENABLED" = "true" ]; then
+		echo "LDAP Auth is Enabled, Generating Config File..."
+		ldap_conf=${GF_AUTH_LDAP_CONFIG_FILE}
+		echo "[[servers]]
+		host = '${LDAP_GF_HOST}'
+		port = ${LDAP_GF_PORT}
+		use_ssl = ${LDAP_GF_USE_SSL}
+		start_tls = ${LDAP_GF_START_TLS}
+		ssl_skip_verify = ${LDAP_GF_SKIP_VERIFY}
+		bind_dn = '${LDAP_GF_BIND_DN}'
+		bind_password = '${LDAP_GF_BIND_PASSWORD}'
+		search_filter = '${LDAP_GF_SEARCH_FILTER}'
+		search_base_dns = ['${LDAP_GF_SEARCH_BASE_DNS}']
+		[servers.attributes]
+		name = '${LDAP_GF_NAME}'
+		surname = '${LDAP_GF_SURNAME}'
+		username = '${LDAP_GF_USERNAME}'
+		member_of = '${LDAP_GF_MEMBER_OF}'
+		email =  '${LDAP_GF_EMAIL}'
+		[[servers.group_mappings]]
+		group_dn = '${LDAP_GF_GROUP_DN_ADMIN}'
+		org_role = '${LDAP_GF_ORG_ROLE_ADMIN}'
+		[[servers.group_mappings]]
+		group_dn = '${LDAP_GF_GROUP_DN_EDITOR}'
+		org_role = '${LDAP_GF_ORG_ROLE_EDITOR}'
+		[[servers.group_mappings]]
+		group_dn = '${LDAP_GF_GROUP_DN_VIEWER}'
+		org_role = '${LDAP_GF_ORG_ROLE_VIEWER}'" > $ldap_conf
+		echo "Generating LDAP Config - Done!"
+	else
+		echo "LDAP Auth is Disable, Config Generation skipping..."
+	fi
 
 PERMISSIONS_OK=0
 
