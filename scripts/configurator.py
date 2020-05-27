@@ -29,6 +29,11 @@ def error(msg=""):
 
 class Configurator:
     def __init__(self):
+        self.grafana_password = os.environ["GF_SECURITY_ADMIN_PASSWORD"]
+        self.grafana_datas_yaml = os.environ["GRA_DSOURCE_YAML"]
+        self.grafana_dashb_yaml = os.environ["GRA_DBOARD_YAML"]
+        self.grafana_hostname = os.environ["GRA_HOST"]
+        self.grafana_pt_dashboards = os.environ["GRA_PATH_TO_DASHBOARDS"]
         self.url = os.environ["ZBX_SERVER_URL"]
         self.server_host = os.environ["ZBX_SERVER_HOST"]
         self.default_admin_username = "admin"
@@ -94,6 +99,74 @@ class Configurator:
         self.configuration = json.loads(os.environ["ZBX_CONFIG"]) if "ZBX_CONFIG" in os.environ and os.environ["ZBX_CONFIG"].strip() != "" else []
         self.admin_users = json.loads(os.environ["ZBX_ADMIN_USERS"]) if "ZBX_ADMIN_USERS" in os.environ and os.environ["ZBX_ADMIN_USERS"].strip() != "" else []
         self.additional_templates = [x.strip() for x in os.environ["ZBX_ADDITIONAL_TEMPLATES"].split(",")] if "ZBX_ADDITIONAL_TEMPLATES" in os.environ else []
+
+    def grafana_plugin_on(self):
+        logger.debug("Grafana Plugin Curl Start")
+        plugURL = ("{0}:3000/api/plugins/alexanderzobnin-zabbix-app/settings?enabled=true".format(self.grafana_hostname))
+        c = pycurl.Curl()
+        c.setopt(c.USERPWD, "%s:%s" % ("admin", self.grafana_password))
+        c.setopt(c.URL, plugURL)
+        c.setopt(c.POSTFIELDS, '{ '' }')
+        c.setopt(c.VERBOSE, True)
+        c.perform()
+
+    def grafana_dashboard_starred(self):
+        logger.debug("Grafana Dashboard Starred")
+        path, dirs, files = os.walk(self.grafana_pt_dashboards).next()
+        file_count = len(files)
+        print (file_count)
+
+        dashboard_id = 1
+        #Condition for find more then one dashboard.json file (need for add to favorite)
+        while dashboard_id <= file_count:
+              #print (dashboard_id)
+              plugURL = ("{0}:3000/api/user/stars/dashboard/{1}".format(self.grafana_hostname, dashboard_id))
+              c = pycurl.Curl()
+              c.setopt(c.USERPWD, "%s:%s" % ("admin", self.grafana_password))
+              c.setopt(c.URL, plugURL)
+              c.setopt(c.POSTFIELDS, '{ '' }')
+              c.setopt(c.VERBOSE, True)
+              c.perform()
+              dashboard_id = dashboard_id + 1 #So simply :)
+
+    def grafana_configurator(self):
+
+        #Datasource.yaml Template generation
+        with open(self.configuration_folder+"/datasource.yaml.tmpl", 'r') as myfile:
+            data = myfile.read().format(self.url, self.admin_password)
+            ds_file = open(self.grafana_datas_yaml, "w")
+            ds_file.write(data)
+            ds_file.close()
+
+        #Dashboard.yaml Template generation
+        with open(self.configuration_folder+"/dashboard.yaml.tmpl", 'r') as myfile:
+            data = myfile.read()
+            db_file = open(self.grafana_dashb_yaml, "w")
+            db_file.write(data)
+            db_file.close()
+
+
+        #Grafana Port Checker (need for check, if server start?)
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        timeconn = 1
+        timeconn_timeout = 10
+        while True:
+            time.sleep(1)
+
+            if timeconn == timeconn_timeout:
+                break
+
+            result = sock.connect_ex((self.grafana_hostname,3000))
+            if result == 0:
+                logger.debug("Grafana Server is Started")
+                self.grafana_plugin_on() #Enable Plugin
+                self.grafana_dashboard_starred() #Add all dashboards to favorite
+                break
+            else:
+                logger.debug("Grafana Server still not start, Try...")
+                timeconn = timeconn + 1
+        sock.close()
+
 
     def login(self):
         logger.debug("Login into Zabbix server (%s)."%(self.url))
@@ -580,7 +653,7 @@ Agent port: {HOST.PORT}''',
         return 1
 
     def main(self):
-
+        self.grafana_configurator()
         if self.authentication_type != self.default_authentication_type:
             logger.debug("Changing authentication_type to default to use api with basic credentials.")
             self.update_configuration(config={"authentication_type":self.default_authentication_type})

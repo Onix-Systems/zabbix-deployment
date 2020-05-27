@@ -22,6 +22,7 @@ printf "Building, launching and configuring Zabbix server. "
 docker-compose build &> /dev/null
 docker-compose up -d &> /dev/null
 echo "Done."
+
 echo "Installing and configuring host's agent."
 echo $DEFAULT_HOST_METADATA
 ./x-setup-agent.sh \

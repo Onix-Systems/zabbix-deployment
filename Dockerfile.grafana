@@ -1,0 +1,13 @@
+ARG GRAFANA_VERSION=6.2.2
+
+FROM grafana/grafana:${GRAFANA_VERSION}
+
+USER root
+
+ENV GF_INSTALL_PLUGINS=alexanderzobnin-zabbix-app
+
+COPY ./scripts/run.sh /
+
+RUN chmod +x /run.sh
+
+ENTRYPOINT [ "/run.sh" ]
