@@ -31,7 +31,7 @@ class Configurator:
     def __init__(self):
         self.url = os.environ["ZBX_SERVER_URL"]
         self.server_host = os.environ["ZBX_SERVER_HOST"]
-        self.default_admin_username = "admin"
+        self.default_admin_username = "Admin"
         self.default_admin_password = "zabbix"
         self.admin_password = os.environ["ZBX_ADMIN_PASSWORD"] if "ZBX_ADMIN_PASSWORD" in os.environ else self.default_admin_password
         self.guest_username = "guest"
