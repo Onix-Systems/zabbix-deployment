@@ -28,6 +28,6 @@ echo $DEFAULT_HOST_METADATA
     -s ${SERVER} \
     -l ${SUBNET_PREFIX}1 \
     --hostname $(hostname -f) \
-    -m "Linux ${DEFAULT_HOST_SECRET}" \
+    -m "\"Linux ${DEFAULT_HOST_SECRET}\"" \
     --enable-docker-module \
     --enable-web-module
