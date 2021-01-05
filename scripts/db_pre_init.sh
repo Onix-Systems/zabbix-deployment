@@ -11,10 +11,8 @@ password=${MYSQL_ROOT_PASSWORD}
 EOF
 
 cat << EOF > ${OPT_FILE}
-
 [mysqld]
 innodb_strict_mode=0
 EOF
-
 
 fi
