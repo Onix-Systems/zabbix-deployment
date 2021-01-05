@@ -13,11 +13,6 @@ EOF
 cat << EOF > ${OPT_FILE}
 
 [mysqld]
-innodb_flush_method=O_DSYNC
-innodb_force_recovery=1
-innodb_flush_log_at_trx_commit = 0
-innodb_log_file_size = 512M
-innodb_log_files_in_group = 3
 innodb_strict_mode=0
 EOF
 
