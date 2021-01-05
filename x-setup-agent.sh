@@ -24,6 +24,7 @@ WEB_DISCOVERY_CONFIG=${CONFIG_FOLDER}/web_list.json
 OS=$(lsb_release -is | tr '[:upper:]' '[:lower:]')
 OSV=$(lsb_release -rs | cut -d"." -f1)
 
+
 HELP_MESSAGE="Usage: ./$(basename $0) [OPTION]
 Script for installing and configuration zabbix agent.
 Project: zabbix-deployment
@@ -86,7 +87,6 @@ if [ "${SHOW_HELP}" == "true" ] || [ -z "${SERVER}" ]; then
 fi
 
 mkdir -p ${MODULE_FOLDER}
-
 printf "Checking OS compartible with script. "
 if [ ! -e "/etc/debian_version" ]; then
   echo "Failed."
@@ -105,14 +105,13 @@ printf "Installing zabbix-agent. "
 apt-get install -y zabbix-agent > /dev/null
 echo "Done."
 
-printf "Downloading docker module. "
+printf "Downloading docker module."
 if [ "${ENABLE_DOCKER_MODULE}" == true ]; then
     docker version &> /dev/null
     if [ "${OS}" == "ubuntu" -a "${OSV}" == "18" ]; then
         OSV="16"
     fi
-    wget -q https://github.com/monitoringartist/zabbix-docker-monitoring/raw/gh-pages/${OS}${OSV}/${ZBX_VERSION}/${MODULE_FILENAME} \
-        -O ${MODULE_FOLDER}/${MODULE_FILENAME}
+    cp ./lib/${OSV}/zabbix_module_docker.so ${MODULE_FOLDER}/${MODULE_FILENAME}
     usermod -aG docker zabbix
 else
     echo "Skipped."
