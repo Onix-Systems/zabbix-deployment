@@ -26,7 +26,7 @@ HELP_MESSAGE="Usage: ./$(basename $0) [OPTION]
 Script for installing and configuration zabbix agent.
 Project: zabbix-deployment
 Options:
-    -b, --bind [ip address]     Set IP address to listen by agent.
+    -l, --listen_ip [ip address]     Set IP address to listen by agent.
     -m, --meta [string]         String to use for auto registration.
     -s, --server [zabbix.local] Set zabbix server to connect by agent. This option is required.
     --hostname [agent.local]    Set agent hostname.
@@ -94,13 +94,13 @@ echo "Done"
 
 if [ "$(which wget)" == "" ]; then apt-get update &> /dev/null; apt-get install -y wget; fi
 printf "Installing zabbix repository. "
-wget -q -O /tmp/zabbix-release.deb http://repo.zabbix.com/zabbix/${ZBX_VERSION}/$(lsb_release -is | tr '[:upper:]' '[:lower:]')/pool/main/z/zabbix-release/zabbix-release_${ZBX_VERSION}-1+$(lsb_release -cs)_all.deb
+wget -q -O /tmp/zabbix-release.deb http://repo.zabbix.com/zabbix/${ZBX_VERSION}/$(lsb_release -is | tr '[:upper:]' '[:lower:]')/pool/main/z/zabbix-release/zabbix-release_${ZBX_VERSION}-1+bionic_all.deb
 dpkg -i /tmp/zabbix-release.deb > /dev/null
 apt-get update > /dev/null
 echo "Done."
 
 printf "Installing zabbix-agent. "
-apt-get install -y zabbix-agent > /dev/null
+apt-get install -y zabbix-agent=1:3.4.15-1+bionic > /dev/null
 echo "Done."
 
 printf "Downloading docker module. "
