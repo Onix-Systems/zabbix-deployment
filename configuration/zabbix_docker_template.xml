@@ -157,7 +157,7 @@ Current template is compartible only with zabbix agent module, that can be found
                     <snmp_community/>
                     <snmp_oid/>
                     <key>docker.discovery</key>
-                    <delay>3540</delay>
+                    <delay>86400</delay>
                     <status>0</status>
                     <allowed_hosts/>
                     <snmpv3_contextname/>

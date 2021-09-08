@@ -10,7 +10,7 @@ RUN apt-get update && \
       python-pip && \
     pip install \
       simplemysql \
-      pycurl \
+      pycurl==7.43.0.3 \
       pyzabbix && \
     apt-get clean
 
